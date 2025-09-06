@@ -2,8 +2,8 @@
 import { GoogleGenAI, Chat, GenerateContentResponse, Type } from "@google/genai";
 import { YieldPredictionParams, UserProfile, MarketAnalysisResult } from '../types';
 
-// Access the API key from the global config object set by config.js
-const API_KEY = (window as any).APP_CONFIG?.API_KEY;
+// Access the API key from environment variables (works in both local and Vercel)
+const API_KEY = import.meta.env.VITE_GEMINI_API_KEY || (window as any).APP_CONFIG?.API_KEY;
 
 // A more robust check for a valid key. It must exist, not be the placeholder, and have a valid Gemini API key format
 const hasValidApiKey = API_KEY && API_KEY !== 'YOUR_GEMINI_API_KEY' && API_KEY.startsWith('AIza') && API_KEY.length === 39;
