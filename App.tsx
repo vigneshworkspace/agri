@@ -1,8 +1,10 @@
 
 import React, { useState, useEffect, useRef, useCallback, FormEvent, createContext, useContext, useMemo } from 'react';
 import { Routes, Route, Link, useLocation, Navigate, useNavigate, Outlet } from 'react-router-dom';
+import { SignedIn, SignedOut, RedirectToSignIn, useClerk, SignIn, useUser } from '@clerk/clerk-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { marked } from 'marked';
+import LandingPage from './LandingPage';
 import type { ChatMessage, DiseaseAnalysisResult, YieldPredictionParams, YieldPredictionResult, RecentActivity, UserProfile, MarketAnalysisResult } from './types';
 import * as GeminiService from './services/geminiService';
 
@@ -28,6 +30,10 @@ const IconSun = ({ className = "w-6 h-6" }) => <svg xmlns="http://www.w3.org/200
 const IconMoon = ({ className = "w-6 h-6" }) => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}><path strokeLinecap="round" strokeLinejoin="round" d="M21.752 15.002A9.72 9.72 0 0 1 18 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 0 0 3 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 0 0 9.002-5.998Z" /></svg>;
 const IconUser = ({ className = "w-6 h-6" }) => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" /></svg>;
 const IconTrendingUp = ({ className = "w-6 h-6" }) => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 18 9 11.25l4.306 4.306a11.95 11.95 0 0 1 5.814-5.518l2.74-1.22m0 0-5.94-2.28m5.94 2.28-2.28 5.941" /></svg>;
+const IconLanguage = ({ className = "w-6 h-6" }) => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}><path strokeLinecap="round" strokeLinejoin="round" d="m10.5 21 5.25-11.25L21 21m-9-3h7.5M3 5.621a48.474 48.474 0 0 1 6-.371m0 0c1.93 0 3.83.129 5.68.371m-5.68-.371v2.39c.096.136.24.308.44.525.317.353.751.732 1.28 1.133C12.08 10.608 13.5 12 13.5 12s1.42-1.392 2.78-2.722c.529-.401.963-.78 1.28-1.133.2-.217.344-.389.44-.525V5.25M3 5.621V3.75A.75.75 0 0 1 3.75 3h1.875c.621 0 1.125.504 1.125 1.125v1.371M21 5.621V3.75a.75.75 0 0 0-.75-.75h-1.875a1.125 1.125 0 0 0-1.125 1.125v1.371m0 0A47.999 47.999 0 0 1 12 4.5a47.999 47.999 0 0 1-9 1.121" /></svg>;
+const IconGlobe = ({ className = "w-6 h-6" }) => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}><path strokeLinecap="round" strokeLinejoin="round" d="M12 21a9.004 9.004 0 0 0 8.716-6.747M12 21a9.004 9.004 0 0 1-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3s-4.5 4.03-4.5 9 2.015 9 4.5 9Zm8.716-6.747c-4.041-.02-7.69-3.369-7.716-7.747M3.284 14.253c4.041-.02 7.69-3.369 7.716-7.747M12 3c-2.485 0-4.5 4.03-4.5 9s2.015 9 4.5 9m0-18c2.485 0 4.5 4.03 4.5 9s-2.015 9-4.5 9" /></svg>;
+const IconMicrophone = ({ className = "w-6 h-6" }) => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}><path strokeLinecap="round" strokeLinejoin="round" d="M12 18.75a6 6 0 0 0 6-6v-1.5m-6 7.5a6 6 0 0 1-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 0 1-3-3V4.5a3 3 0 1 1 6 0v8.25a3 3 0 0 1-3 3Z" /></svg>;
+const IconMicrophoneSlash = ({ className = "w-6 h-6" }) => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}><path strokeLinecap="round" strokeLinejoin="round" d="M9.75 9.75 12 12m0 0 2.25 2.25M12 12l-2.25-2.25M12 12l2.25-2.25m-2.25 6.75a6 6 0 0 0 6-6v-1.5m-6 7.5a6 6 0 0 1-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 0 1-3-3V4.5a3 3 0 1 1 6 0v8.25a3 3 0 0 1-3 3Z" /></svg>;
 
 
 // --- CONTEXT & PROVIDERS ---
@@ -84,26 +90,372 @@ const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) =>
 
 export const useTheme = () => useContext(ThemeContext)!;
 
-// Auth Context
-interface AuthContextType { isAuthenticated: boolean; login: () => void; logout: () => void; }
-const AuthContext = createContext<AuthContextType | null>(null);
-const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => !!localStorage.getItem('agri_user'));
-    const navigate = useNavigate();
+// Language Context
+type Language = 'en' | 'es' | 'fr' | 'de' | 'hi' | 'zh';
+interface LanguageContextType { 
+    language: Language; 
+    setLanguage: (lang: Language) => void;
+    t: (key: string) => string;
+}
+const LanguageContext = createContext<LanguageContextType | null>(null);
 
-    const login = () => {
-        localStorage.setItem('agri_user', 'true');
-        setIsAuthenticated(true);
-        navigate('/tools/assistant');
-    };
-    const logout = () => {
-        localStorage.removeItem('agri_user');
-        setIsAuthenticated(false);
-        navigate('/');
-    };
-    return <AuthContext.Provider value={{ isAuthenticated, login, logout }}>{children}</AuthContext.Provider>;
+// Simple translations object
+const translations = {
+    en: {
+        // App and navigation
+        'app.name': 'AgriAssist Pro',
+        'app.tagline': 'Your Smart Farming Companion',
+        'nav.assistant': 'AI Assistant',
+        'nav.disease': 'Disease Detection',
+        'nav.yield': 'Yield Prediction',
+        'nav.market': 'Market Advisor',
+        'nav.watering': 'Smart Watering',
+        'nav.dashboard': 'User Dashboard',
+        'nav.profile': 'Profile',
+        'nav.logout': 'Logout',
+        
+        // Common actions
+        'action.upload': 'Upload',
+        'action.analyze': 'Analyze',
+        'action.predict': 'Predict',
+        'action.save': 'Save',
+        'action.cancel': 'Cancel',
+        'action.clear': 'Clear',
+        'action.send': 'Send',
+        'action.fullscreen': 'Fullscreen',
+        'action.collapse': 'Collapse',
+        'action.gotit': 'Got it!',
+        'action.selectLanguage': 'Select Language',
+        
+        // AI Assistant
+        'ai.title': 'AI Agricultural Assistant',
+        'ai.subtitle': 'Your on-demand farming expert. Ask me anything.',
+        'ai.placeholder': 'Ask about crops, soil, or anything farming-related...',
+        'ai.suggestion1': 'Best fertilizer for corn?',
+        'ai.suggestion2': 'How to treat tomato blight?',
+        'ai.suggestion3': 'When is the best time to plant soybeans?',
+        'ai.suggestion4': 'Improve soil quality',
+        
+        // Disease Detection
+        'disease.title': 'Crop Disease Detection',
+        'disease.subtitle': 'Upload an image of a plant leaf to identify potential diseases.',
+        'disease.uploadPrompt': 'Upload an image to analyze',
+        'disease.analyzing': 'Analyzing image...',
+        'disease.disease': 'Disease',
+        'disease.confidence': 'Confidence',
+        'disease.description': 'Description',
+        'disease.treatment': 'Treatment',
+        'disease.prevention': 'Prevention',
+        
+        // Yield Prediction
+        'yield.title': 'Yield Prediction',
+        'yield.subtitle': 'Forecast crop yield based on your profile and selected crop.',
+        'yield.selectCrop': 'Select Crop',
+        'yield.location': 'Location',
+        'yield.farmSize': 'Farm Size (acres)',
+        'yield.soilType': 'Soil Type',
+        'yield.predictedYield': 'Predicted Yield',
+        'yield.regionalAverage': 'Regional Average',
+        'yield.insights': 'Insights',
+        
+        // Smart Watering
+        'water.title': 'Smart Watering System',
+        'water.subtitle': 'Monitor soil moisture and get intelligent watering recommendations.',
+        'water.currentMoisture': 'Current Soil Moisture',
+        'water.threshold': 'Watering Threshold',
+        'water.recommendation': 'Recommendation',
+        'water.getAdvice': 'Get Watering Advice',
+        
+        // Market Advisor
+        'market.title': 'Market Advisor',
+        'market.subtitle': 'Get AI-powered market analysis and price forecasts for your crops.',
+        'market.selectCrop': 'Select Crop for Analysis',
+        'market.analyzing': 'Analyzing market data...',
+        'market.sources': 'Sources',
+        
+        // Dashboard
+        'dashboard.title': 'User Dashboard',
+        'dashboard.subtitle': 'An overview of your activity and usage statistics.',
+        'dashboard.recentActivity': 'Recent Activity',
+        'dashboard.noActivity': 'No recent activity to display.',
+        'dashboard.welcome': 'Welcome back',
+        
+        // Profile
+        'profile.title': 'Your Profile',
+        'profile.subtitle': 'Keep your farm and contact information up to date.',
+        'profile.farmDetails': 'Farm Details',
+        'profile.contactInfo': 'Contact Information',
+        'profile.name': 'Name',
+        'profile.email': 'Email',
+        'profile.phone': 'Phone',
+        'profile.acres': 'Farm Size (acres)',
+        'profile.location': 'Location',
+        'profile.soilType': 'Primary Soil Type',
+        'profile.currentCrops': 'Currently Planted Crops',
+        'profile.clay': 'Clay',
+        'profile.sandy': 'Sandy',
+        'profile.loam': 'Loam',
+        'profile.silt': 'Silt',
+        
+        // Voice Assistant
+        'voice.title': 'Voice Assistant',
+        'voice.prompt': 'Click to start voice input',
+        'voice.listening': 'Listening...',
+        'voice.notSupported': 'Voice recognition not supported'
+    },
+    
+    hi: {
+        // App and navigation
+        'app.name': 'एग्रीअसिस्ट प्रो',
+        'app.tagline': 'आपका स्मार्ट खेती साथी',
+        'nav.assistant': 'एआई सहायक',
+        'nav.disease': 'रोग का पता लगाना',
+        'nav.yield': 'उत्पादन पूर्वानुमान',
+        'nav.market': 'बाजार सलाहकार',
+        'nav.watering': 'स्मार्ट सिंचाई',
+        'nav.dashboard': 'उपयोगकर्ता डैशबोर्ड',
+        'nav.profile': 'प्रोफ़ाइल',
+        'nav.logout': 'लॉग आउट',
+        
+        // Common actions
+        'action.upload': 'अपलोड करें',
+        'action.analyze': 'विश्लेषण करें',
+        'action.predict': 'पूर्वानुमान लगाएं',
+        'action.save': 'सेव करें',
+        'action.cancel': 'रद्द करें',
+        'action.clear': 'साफ करें',
+        'action.send': 'भेजें',
+        'action.fullscreen': 'पूर्ण स्क्रीन',
+        'action.collapse': 'संक्षिप्त करें',
+        'action.gotit': 'समझ गया!',
+        'action.selectLanguage': 'भाषा चुनें',
+        
+        // AI Assistant
+        'ai.title': 'एआई कृषि सहायक',
+        'ai.subtitle': 'आपका मांग पर खेती विशेषज्ञ। मुझसे कुछ भी पूछें।',
+        'ai.placeholder': 'फसल, मिट्टी, या खेती से संबंधित कुछ भी पूछें...',
+        'ai.suggestion1': 'मक्का के लिए सबसे अच्छा उर्वरक?',
+        'ai.suggestion2': 'टमाटर की झुलसाहट का इलाज कैसे करें?',
+        'ai.suggestion3': 'सोयाबीन बोने का सबसे अच्छा समय कब है?',
+        'ai.suggestion4': 'मिट्टी की गुणवत्ता में सुधार करें',
+        
+        // Disease Detection
+        'disease.title': 'फसल रोग पहचान',
+        'disease.subtitle': 'संभावित रोगों की पहचान के लिए पौधे की पत्ती की छवि अपलोड करें।',
+        'disease.uploadPrompt': 'विश्लेषण के लिए छवि अपलोड करें',
+        'disease.analyzing': 'छवि का विश्लेषण कर रहे हैं...',
+        'disease.disease': 'रोग',
+        'disease.confidence': 'विश्वास',
+        'disease.description': 'विवरण',
+        'disease.treatment': 'उपचार',
+        'disease.prevention': 'रोकथाम',
+        
+        // Yield Prediction
+        'yield.title': 'उत्पादन पूर्वानुमान',
+        'yield.subtitle': 'आपकी प्रोफ़ाइल और चयनित फसल के आधार पर फसल उत्पादन का पूर्वानुमान।',
+        'yield.selectCrop': 'फसल चुनें',
+        'yield.location': 'स्थान',
+        'yield.farmSize': 'खेत का आकार (एकड़)',
+        'yield.soilType': 'मिट्टी का प्रकार',
+        'yield.predictedYield': 'अनुमानित उत्पादन',
+        'yield.regionalAverage': 'क्षेत्रीय औसत',
+        'yield.insights': 'अंतर्दृष्टि',
+        
+        // Smart Watering
+        'water.title': 'स्मार्ट सिंचाई प्रणाली',
+        'water.subtitle': 'मिट्टी की नमी की निगरानी करें और बुद्धिमान सिंचाई सिफारिशें प्राप्त करें।',
+        'water.currentMoisture': 'वर्तमान मिट्टी की नमी',
+        'water.threshold': 'सिंचाई सीमा',
+        'water.recommendation': 'सिफारिश',
+        'water.getAdvice': 'सिंचाई सलाह प्राप्त करें',
+        
+        // Market Advisor
+        'market.title': 'बाजार सलाहकार',
+        'market.subtitle': 'अपनी फसलों के लिए एआई-संचालित बाजार विश्लेषण और मूल्य पूर्वानुमान प्राप्त करें।',
+        'market.selectCrop': 'विश्लेषण के लिए फसल चुनें',
+        'market.analyzing': 'बाजार डेटा का विश्लेषण कर रहे हैं...',
+        'market.sources': 'स्रोत',
+        
+        // Dashboard
+        'dashboard.title': 'उपयोगकर्ता डैशबोर्ड',
+        'dashboard.subtitle': 'आपकी गतिविधि और उपयोग आंकड़ों का अवलोकन।',
+        'dashboard.recentActivity': 'हालिया गतिविधि',
+        'dashboard.noActivity': 'प्रदर्शित करने के लिए कोई हालिया गतिविधि नहीं।',
+        'dashboard.welcome': 'वापसी पर स्वागत है',
+        
+        // Profile
+        'profile.title': 'आपकी प्रोफ़ाइल',
+        'profile.subtitle': 'अपने खेत और संपर्क जानकारी को अद्यतन रखें।',
+        'profile.farmDetails': 'खेत विवरण',
+        'profile.contactInfo': 'संपर्क जानकारी',
+        'profile.name': 'नाम',
+        'profile.email': 'ईमेल',
+        'profile.phone': 'फोन',
+        'profile.acres': 'खेत का आकार (एकड़)',
+        'profile.location': 'स्थान',
+        'profile.soilType': 'प्राथमिक मिट्टी प्रकार',
+        'profile.currentCrops': 'वर्तमान में लगाई गई फसलें',
+        'profile.clay': 'चिकनी मिट्टी',
+        'profile.sandy': 'रेतीली मिट्टी',
+        'profile.loam': 'दोमट मिट्टी',
+        'profile.silt': 'गाद मिट्टी',
+        
+        // Voice Assistant
+        'voice.title': 'ध्वनि सहायक',
+        'voice.prompt': 'ध्वनि इनपुट शुरू करने के लिए क्लिक करें',
+        'voice.listening': 'सुन रहे हैं...',
+        'voice.notSupported': 'ध्वनि पहचान समर्थित नहीं है'
+    },
+    
+    // Add basic structure for other Indian languages (we can expand these)
+    bn: {
+        'app.name': 'এগ্রিঅ্যাসিস্ট প্রো',
+        'nav.assistant': 'AI সহায়ক',
+        'nav.disease': 'রোগ সনাক্তকরণ',
+        'nav.yield': 'ফলন পূর্বাভাস',
+        'nav.market': 'বাজার উপদেষ্টা',
+        'nav.watering': 'স্মার্ট সেচ',
+        'nav.dashboard': 'ব্যবহারকারী ড্যাশবোর্ড',
+        'nav.profile': 'প্রোফাইল',
+        'nav.logout': 'লগ আউট',
+        'action.fullscreen': 'পূর্ণ স্ক্রিন',
+        'action.collapse': 'সংকুচিত'
+    },
+    
+    ta: {
+        'app.name': 'AgriAssist Pro',
+        'nav.assistant': 'AI உதவியாளர்',
+        'nav.disease': 'நோய் கண்டறிதல்',
+        'nav.yield': 'விளைச்சல் முன்னறிவிப்பு',
+        'nav.market': 'சந்தை ஆலோசகர்',
+        'nav.watering': 'ஸ்மார்ட் நீர்ப்பாசனம்',
+        'nav.dashboard': 'பயனர் டாஷ்போர்டு',
+        'nav.profile': 'சுயவிவரம்',
+        'nav.logout': 'வெளியேறு',
+        'action.fullscreen': 'முழுத்திரை',
+        'action.collapse': 'சுருக்கு'
+    },
+    
+    te: {
+        'app.name': 'AgriAssist Pro',
+        'nav.assistant': 'AI సహాయకుడు',
+        'nav.disease': 'వ్యాధి గుర్తింపు',
+        'nav.yield': 'దిగుబడి అంచనా',
+        'nav.market': 'మార్కెట్ సలహాదారు',
+        'nav.watering': 'స్మార్ట్ నీటిపారుదల',
+        'nav.dashboard': 'వినియోగదారు డాష్‌బోర్డ్',
+        'nav.profile': 'ప్రొఫైల్',
+        'nav.logout': 'లాగ్ అవుట్',
+        'action.fullscreen': 'పూర్తి స్క్రీన్',
+        'action.collapse': 'కుదించు'
+    },
+    
+    mr: {
+        'app.name': 'AgriAssist Pro',
+        'nav.assistant': 'AI सहाय्यक',
+        'nav.disease': 'रोग ओळख',
+        'nav.yield': 'उत्पादन अंदाज',
+        'nav.market': 'बाजार सल्लागार',
+        'nav.watering': 'स्मार्ट पाणी',
+        'nav.dashboard': 'वापरकर्ता डॅशबोर्ड',
+        'nav.profile': 'प्रोफाइल',
+        'nav.logout': 'लॉग आउट',
+        'action.fullscreen': 'पूर्ण स्क्रीन',
+        'action.collapse': 'संकुचित'
+    },
+    
+    gu: {
+        'app.name': 'AgriAssist Pro',
+        'nav.assistant': 'AI સહાયક',
+        'nav.disease': 'રોગ ઓળખ',
+        'nav.yield': 'ઉત્પાદન આગાહી',
+        'nav.market': 'બજાર સલાહકાર',
+        'nav.watering': 'સ્માર્ટ પાણી',
+        'nav.dashboard': 'વપરાશકર્તા ડેશબોર્ડ',
+        'nav.profile': 'પ્રોફાઇલ',
+        'nav.logout': 'લૉગ આઉટ',
+        'action.fullscreen': 'પૂર્ણ સ્ક્રીન',
+        'action.collapse': 'સંકુચિત'
+    },
+    
+    kn: {
+        'app.name': 'AgriAssist Pro',
+        'nav.assistant': 'AI ಸಹಾಯಕ',
+        'nav.disease': 'ರೋಗ ಪತ್ತೆ',
+        'nav.yield': 'ಇಳುವರಿ ಮುನ್ಸೂಚನೆ',
+        'nav.market': 'ಮಾರುಕಟ್ಟೆ ಸಲಹೆಗಾರ',
+        'nav.watering': 'ಸ್ಮಾರ್ಟ್ ನೀರು',
+        'nav.dashboard': 'ಬಳಕೆದಾರ ಡ್ಯಾಶ್‌ಬೋರ್ಡ್',
+        'nav.profile': 'ಪ್ರೊಫೈಲ್',
+        'nav.logout': 'ಲಾಗ್ ಔಟ್',
+        'action.fullscreen': 'ಪೂರ್ಣ ಪರದೆ',
+        'action.collapse': 'ಸಂಕುಚಿತ'
+    },
+    
+    ml: {
+        'app.name': 'AgriAssist Pro',
+        'nav.assistant': 'AI സഹായി',
+        'nav.disease': 'രോഗ കണ്ടെത്തൽ',
+        'nav.yield': 'വിളവ് പ്രവചനം',
+        'nav.market': 'മാർക്കറ്റ് ഉപദേശകൻ',
+        'nav.watering': 'സ്മാർട്ട് വെള്ളം',
+        'nav.dashboard': 'ഉപയോക്താവ് ഡാഷ്ബോർഡ്',
+        'nav.profile': 'പ്രൊഫൈൽ',
+        'nav.logout': 'ലോഗ് ഔട്ട്',
+        'action.fullscreen': 'പൂർണ്ണ സ്ക്രീൻ',
+        'action.collapse': 'ചുരുക്കുക'
+    },
+    
+    pa: {
+        'app.name': 'AgriAssist Pro',
+        'nav.assistant': 'AI ਸਹਾਇਕ',
+        'nav.disease': 'ਬਿਮਾਰੀ ਪਛਾਣ',
+        'nav.yield': 'ਪੈਦਾਵਾਰ ਪੂਰਵ-ਅਨੁਮਾਨ',
+        'nav.market': 'ਮਾਰਕੀਟ ਸਲਾਹਕਾਰ',
+        'nav.watering': 'ਸਮਾਰਟ ਪਾਣੀ',
+        'nav.dashboard': 'ਉਪਭੋਗਤਾ ਡੈਸ਼ਬੋਰਡ',
+        'nav.profile': 'ਪ੍ਰੋਫਾਈਲ',
+        'nav.logout': 'ਲਾਗ ਆਉਟ',
+        'action.fullscreen': 'ਪੂਰੀ ਸਕਰੀਨ',
+        'action.collapse': 'ਸੁੰਗੜੋ'
+    }
 };
-export const useAuth = () => useContext(AuthContext)!;
+
+const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+    const [language, setLanguage] = useState<Language>(() => {
+        try {
+            const saved = localStorage.getItem('agri_language');
+            if (saved && Object.keys(translations).includes(saved)) {
+                return saved as Language;
+            }
+        } catch (error) {
+            console.warn('Could not read language from localStorage.', error);
+        }
+        // Fallback to browser language or English
+        const browserLang = navigator.language.split('-')[0];
+        return Object.keys(translations).includes(browserLang) ? browserLang as Language : 'en';
+    });
+
+    useEffect(() => {
+        try {
+            localStorage.setItem('agri_language', language);
+        } catch (error) {
+            console.warn('Could not save language to localStorage.', error);
+        }
+    }, [language]);
+
+    const t = (key: string): string => {
+        return translations[language][key] || translations.en[key] || key;
+    };
+
+    const value = useMemo(() => ({ language, setLanguage, t }), [language]);
+
+    return <LanguageContext.Provider value={value}>{children}</LanguageContext.Provider>;
+};
+
+export const useLanguage = () => useContext(LanguageContext)!;
+
+// Clerk will provide authentication state; local AuthContext removed in favor of Clerk
 
 // Activity Context
 interface ActivityContextType { activities: RecentActivity[]; addActivity: (activity: Omit<RecentActivity, 'id' | 'timestamp'>) => void; }
@@ -131,15 +483,82 @@ export const useActivity = () => useContext(ActivityContext)!;
 interface ChatContextType { messages: ChatMessage[]; sendMessage: (messageText: string) => Promise<void>; isLoading: boolean; clearMessages: () => void; }
 const ChatContext = createContext<ChatContextType | null>(null);
 const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+    const { language } = useLanguage();
+    
+    // Welcome messages in different languages
+    const welcomeMessages: Record<string, string> = {
+        'en': 'Hello! I am AgriAssist Pro. How can I help you with your farming needs today?',
+        'hi': 'नमस्ते! मैं AgriAssist Pro हूं। आज मैं आपकी खेती की जरूरतों में कैसे मदद कर सकता हूं?',
+        'bn': 'হ্যালো! আমি AgriAssist Pro। আজ আপনার কৃষি প্রয়োজনে আমি কিভাবে সাহায্য করতে পারি?',
+        'ta': 'வணக்கம்! நான் AgriAssist Pro. இன்று உங்கள் விவசாய தேவைகளில் நான் எப்படி உதவ முடியும்?',
+        'te': 'హలో! నేను AgriAssist Pro. ఈరోజు మీ వ్యవసాయ అవసరాలలో నేను ఎలా సహాయం చేయగలను?',
+        'mr': 'नमस्कार! मी AgriAssist Pro आहे। आज मी तुमच्या शेतीच्या गरजांमध्ये कशी मदत करू शकतो?',
+        'gu': 'હેલો! હું AgriAssist Pro છું। આજે તમારી ખેતીની જરૂરિયાતોમાં હું કેવી રીતે મદદ કરી શકું?',
+        'kn': 'ಹಲೋ! ನಾನು AgriAssist Pro. ಇಂದು ನಿಮ್ಮ ಕೃಷಿ ಅಗತ್ಯಗಳಲ್ಲಿ ನಾನು ಹೇಗೆ ಸಹಾಯ ಮಾಡಬಹುದು?',
+        'ml': 'ഹലോ! ഞാൻ AgriAssist Pro ആണ്. ഇന്ന് നിങ്ങളുടെ കാർഷിക ആവശ്യങ്ങളിൽ എനിക്ക് എങ്ങനെ സഹായിക്കാം?',
+        'pa': 'ਸਤ ਸ੍ਰੀ ਅਕਾਲ! ਮੈਂ AgriAssist Pro ਹਾਂ। ਅੱਜ ਮੈਂ ਤੁਹਾਡੀਆਂ ਖੇਤੀ ਦੀਆਂ ਲੋੜਾਂ ਵਿੱਚ ਕਿਵੇਂ ਮਦਦ ਕਰ ਸਕਦਾ ਹਾਂ?'
+    };
+    
     const [messages, setMessages] = useState<ChatMessage[]>(() => {
         const saved = sessionStorage.getItem('agri_chat');
-        return saved ? JSON.parse(saved) : [{ role: 'model', text: 'Hello! I am AgriAssist Pro. How can I help you with your farming needs today?' }];
+        return saved ? JSON.parse(saved) : [{ role: 'model', text: welcomeMessages[language] || welcomeMessages['en'] }];
     });
     const [isLoading, setIsLoading] = useState(false);
     const { addActivity } = useActivity();
     const { profile } = useProfile();
+    const { user } = useUser();
 
     useEffect(() => { sessionStorage.setItem('agri_chat', JSON.stringify(messages)); }, [messages]);
+    
+    // Reset chat when language changes and update welcome message
+    useEffect(() => {
+        GeminiService.resetChat();
+        setMessages([{ role: 'model', text: welcomeMessages[language] || welcomeMessages['en'] }]);
+    }, [language]);
+
+    const saveChatMessageToSupabase = async (role: string, content: string) => {
+        if (!user) {
+            console.log('No user logged in, skipping Supabase save');
+            return;
+        }
+        try {
+            console.log('Attempting to save message to Supabase...', { role, content: content.substring(0, 50) + '...', userId: user.id });
+            const mod = await import('./services/supabaseClient');
+            const { supabase } = mod as typeof import('./services/supabaseClient');
+            
+            const messageData = {
+                user_id: user.id,
+                conversation_id: null, // Could add session ID here if needed
+                role,
+                content,
+                metadata: {},
+                created_at: new Date().toISOString()
+            };
+            
+            console.log('Message data to insert:', messageData);
+            
+            const { data, error } = await supabase.from('chat_messages').insert([messageData]);
+            
+            if (error) {
+                console.error('❌ Supabase save error:', error);
+                console.error('Error details:', {
+                    code: error.code,
+                    message: error.message,
+                    details: error.details,
+                    hint: error.hint
+                });
+                
+                // If it's an RLS error, show a notification to the user
+                if (error.code === '42501') {
+                    console.warn('🔒 Row Level Security is preventing data save. Please check Supabase RLS policies.');
+                }
+            } else {
+                console.log('✅ Message saved successfully to Supabase:', data);
+            }
+        } catch (err) {
+            console.error('❌ Failed to save chat message to Supabase:', err);
+        }
+    };
 
     const sendMessage = async (messageText: string) => {
         if (!messageText.trim()) return;
@@ -149,8 +568,11 @@ const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
         setMessages(newMessages);
         setIsLoading(true);
 
+        // Save user message to Supabase
+        await saveChatMessageToSupabase('user', messageText);
+
         try {
-            const stream = GeminiService.streamChatResponse(messageText, profile);
+            const stream = GeminiService.streamChatResponse(messageText, profile, language);
             let fullResponse = "";
             const responseMessage: ChatMessage = { role: 'model', text: '' };
             setMessages([...newMessages, responseMessage]);
@@ -162,6 +584,11 @@ const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
                     updatedMessages[updatedMessages.length - 1] = { ...responseMessage, text: fullResponse };
                     return updatedMessages;
                 });
+            }
+
+            // Save assistant response to Supabase
+            if (fullResponse) {
+                await saveChatMessageToSupabase('model', fullResponse);
             }
         } catch (error) {
             console.error("Chat error:", error);
@@ -183,6 +610,9 @@ export const useChat = () => useContext(ChatContext)!;
 interface ProfileContextType { profile: UserProfile; updateProfile: (newProfile: UserProfile) => void; }
 const ProfileContext = createContext<ProfileContextType | null>(null);
 const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+    const { user } = useUser();
+    const supabaseClientImport = async () => await import('./services/supabaseClient');
+
     const [profile, setProfile] = useState<UserProfile>(() => {
         const saved = localStorage.getItem('agri_profile');
         return saved ? JSON.parse(saved) : {
@@ -196,10 +626,118 @@ const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ children }) 
         };
     });
 
+    // Load profile from Supabase when user becomes available
+    useEffect(() => {
+        let mounted = true;
+        if (!user) return;
+        (async () => {
+            try {
+                const mod = await supabaseClientImport();
+                const { supabase } = mod as typeof import('./services/supabaseClient');
+                const { data, error } = await supabase.from('profiles').select('*').eq('id', user.id).single();
+                if (error && !data) {
+                    // If no row exists, create one using Clerk metadata
+                    const clerkName = (user as any)?.fullName || `${(user as any)?.firstName || ''} ${(user as any)?.lastName || ''}`.trim() || undefined;
+                    const clerkEmail = (user as any)?.primaryEmailAddress?.emailAddress || (user as any)?.emailAddresses?.[0]?.emailAddress || (user as any)?.email || undefined;
+                    const payload: any = { id: user.id };
+                    if (clerkName) payload.name = clerkName;
+                    if (clerkEmail) payload.email = clerkEmail;
+                    try {
+                        const up = await supabase.from('profiles').upsert(payload);
+                        if (up.error) console.warn('Failed to create profile in supabase', up.error);
+                    } catch (upErr) {
+                        console.warn('Supabase upsert failed', upErr);
+                    }
+                    // Set local profile using clerk metadata if available
+                    if (mounted) {
+                        setProfile(prev => ({ ...prev, ...(clerkName ? { name: clerkName } : {}), ...(clerkEmail ? { email: clerkEmail } : {}) } as any));
+                        try { localStorage.setItem('agri_profile', JSON.stringify({ ...profile, ...(clerkName ? { name: clerkName } : {}), ...(clerkEmail ? { email: clerkEmail } : {}) })); } catch (_) {}
+                    }
+                } else if (data && mounted) {
+                    // Merge existing DB row into local profile, mapping field names
+                    const mappedData = {
+                        name: data.name,
+                        email: data.email,
+                        contact: data.contact,
+                        acres: data.acres,
+                        location: data.location,
+                        currentCrops: data.currentcrops || '', // Map from DB field name
+                        soilType: data.soiltype || 'loamy' // Map from DB field name
+                    };
+                    setProfile(prev => ({ ...prev, ...mappedData }));
+                    try { localStorage.setItem('agri_profile', JSON.stringify({ ...profile, ...mappedData })); } catch (_) {}
+                    // If DB row exists but missing name/email, fill from Clerk metadata
+                    const clerkName = (user as any)?.fullName || `${(user as any)?.firstName || ''} ${(user as any)?.lastName || ''}`.trim() || undefined;
+                    const clerkEmail = (user as any)?.primaryEmailAddress?.emailAddress || (user as any)?.emailAddresses?.[0]?.emailAddress || (user as any)?.email || undefined;
+                    const needsUpdate: any = {};
+                    if (clerkName && !data.name) needsUpdate.name = clerkName;
+                    if (clerkEmail && !data.email) needsUpdate.email = clerkEmail;
+                    if (Object.keys(needsUpdate).length) {
+                        try {
+                            const payload = { id: user.id, ...needsUpdate };
+                            const up = await supabase.from('profiles').upsert(payload);
+                            if (up.error) console.warn('Failed to update profile with clerk metadata', up.error);
+                        } catch (upErr) {
+                            console.warn('Supabase upsert failed', upErr);
+                        }
+                    }
+                }
+            } catch (err) {
+                console.warn('Supabase client import failed', err);
+            }
+        })();
+        return () => { mounted = false; };
+    }, [user]);
+
     useEffect(() => { localStorage.setItem('agri_profile', JSON.stringify(profile)); }, [profile]);
     
-    const updateProfile = (newProfile: UserProfile) => {
+    const updateProfile = async (newProfile: UserProfile) => {
         setProfile(newProfile);
+        // Persist to Supabase if user is signed in
+        if (!user) {
+            console.log('No user logged in, skipping Supabase profile save');
+            return;
+        }
+        try {
+            console.log('Attempting to save profile to Supabase...', { userId: user.id, profile: newProfile });
+            const mod = await supabaseClientImport();
+            const { supabase } = mod as typeof import('./services/supabaseClient');
+            
+            // Map the profile fields to match Supabase schema
+            const payload = { 
+                id: user.id, 
+                name: newProfile.name,
+                email: newProfile.email,
+                contact: newProfile.contact,
+                acres: newProfile.acres,
+                location: newProfile.location,
+                currentcrops: newProfile.currentCrops, // Map to schema field name
+                soiltype: newProfile.soilType, // Map to schema field name
+                updated_at: new Date().toISOString()
+            };
+            
+            console.log('Profile data to upsert:', payload);
+            
+            // Upsert into profiles table
+            const { data, error } = await supabase.from('profiles').upsert(payload);
+            if (error) {
+                console.error('❌ Supabase profile save error:', error);
+                console.error('Error details:', {
+                    code: error.code,
+                    message: error.message,
+                    details: error.details,
+                    hint: error.hint
+                });
+                
+                if (error.code === '42501') {
+                    console.warn('🔒 Row Level Security is preventing profile save. Please check Supabase RLS policies.');
+                }
+            } else {
+                console.log('✅ Profile saved successfully to Supabase:', data);
+            }
+        } catch (err) {
+            console.error('❌ Supabase client import failed:', err);
+        }
     };
     return <ProfileContext.Provider value={{ profile, updateProfile }}>{children}</ProfileContext.Provider>;
 };
@@ -237,258 +775,203 @@ const ThemeToggle: React.FC<{ className?: string }> = ({ className }) => {
         </button>
     );
 };
-const LanguageTranslator: React.FC<{ className?: string }> = ({ className }) => {
-    const translatorRef = useRef<HTMLDivElement>(null);
 
-    useEffect(() => {
-        // The Google Translate script initializes the element with id 'google_translate_element'
-        // We move the styled child node into our component's div to control its placement
-        const interval = setInterval(() => {
-            const googleElement = document.getElementById('google_translate_element');
-            const widget = googleElement?.querySelector('.skiptranslate');
-            if (widget && translatorRef.current) {
-                if (!translatorRef.current.querySelector('.skiptranslate')) {
-                    translatorRef.current.appendChild(widget);
+const LanguageToggle: React.FC<{ className?: string }> = ({ className }) => {
+    const { language, setLanguage, t } = useLanguage();
+    const [isOpen, setIsOpen] = useState(false);
+
+    const languages = [
+        { code: 'en', name: 'English', flag: '��' },
+        { code: 'hi', name: 'हिंदी', flag: '🇮🇳' },
+        { code: 'bn', name: 'বাংলা', flag: '🇮🇳' },
+        { code: 'ta', name: 'தமிழ்', flag: '🇮🇳' },
+        { code: 'te', name: 'తెలుగు', flag: '��' },
+        { code: 'mr', name: 'मराठी', flag: '🇮🇳' },
+        { code: 'gu', name: 'ગુજરાતી', flag: '��' },
+        { code: 'kn', name: 'ಕನ್ನಡ', flag: '��' },
+        { code: 'ml', name: 'മലയാളം', flag: '🇮🇳' },
+        { code: 'pa', name: 'ਪੰਜਾਬੀ', flag: '�🇳' }
+    ] as const;
+
+    const currentLang = languages.find(lang => lang.code === language) || languages[0];
+
+    const handleLanguageChange = (langCode: Language) => {
+        setLanguage(langCode);
+        setIsOpen(false);
+        
+        // Use the existing Google Translate element from the HTML
+        setTimeout(() => {
+            try {
+                const translateSelect = document.querySelector('#page-translator select') as HTMLSelectElement;
+                if (translateSelect) {
+                    // Map our language codes to Google Translate codes
+                    const langMap: Record<string, string> = {
+                        'en': 'en',
+                        'hi': 'hi', 
+                        'bn': 'bn',
+                        'ta': 'ta',
+                        'te': 'te',
+                        'mr': 'mr',
+                        'gu': 'gu',
+                        'kn': 'kn',
+                        'ml': 'ml',
+                        'pa': 'pa'
+                    };
+                    
+                    const translateCode = langMap[langCode] || 'en';
+                    translateSelect.value = translateCode;
+                    translateSelect.dispatchEvent(new Event('change', { bubbles: true }));
+                    
+                    // Also update our internal translations
+                    document.title = t('appName') || 'AgriAssist Pro';
+                } else {
+                    console.log('Google Translate not available, using internal translations');
+                    // Fallback to internal translations
+                    document.title = t('appName') || 'AgriAssist Pro';
                 }
-                clearInterval(interval);
+            } catch (error) {
+                console.error('Translation error:', error);
+                // Fallback to internal translations
+                document.title = t('appName') || 'AgriAssist Pro';
             }
-        }, 100);
-
-        return () => clearInterval(interval);
-    }, []);
-    
-    return <div ref={translatorRef} id="translator-container" className={className}></div>;
-};
-
-// --- AUTH & ROUTING ---
-const ProtectedRoute: React.FC = () => {
-    const { isAuthenticated } = useAuth();
-    const location = useLocation();
-    return isAuthenticated ? <Outlet /> : <Navigate to="/login" replace state={{ from: location }} />;
-};
-
-const LoginPage: React.FC = () => {
-    const { login } = useAuth();
-    const navigate = useNavigate();
-    const { isAuthenticated } = useAuth();
-
-    useEffect(() => {
-        if (isAuthenticated) {
-            navigate('/tools/assistant');
-        }
-    }, [isAuthenticated, navigate]);
-
-    const handleLogin = (e: FormEvent) => {
-        e.preventDefault();
-        login();
+        }, 200);
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center p-4 bg-cover bg-center" style={{ backgroundImage: "url('https://picsum.photos/1920/1080?random=1&blur=5')" }}>
-            <Card className="w-full max-w-sm">
-                <div className="text-center mb-6">
-                    <IconLeaf className="text-emerald-400 w-12 h-12 mx-auto mb-2" />
-                    <h1 className="text-2xl font-bold">Welcome to AgriAssist Pro</h1>
-                    <p className="text-slate-500 dark:text-slate-400">Please sign in to continue</p>
-                </div>
-                <form onSubmit={handleLogin} className="space-y-4">
-                    <div>
-                        <label className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-1" htmlFor="username">Username</label>
-                        <input id="username" type="text" defaultValue="farmer_admin" className="w-full bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg p-3 focus:ring-2 focus:ring-emerald-500 focus:outline-none" />
+        <div className={`relative ${className}`}>
+            <button 
+                onClick={() => setIsOpen(!isOpen)}
+                className="p-2 rounded-lg bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm border border-slate-200/50 dark:border-slate-700/50 shadow-sm transition-all duration-300 text-slate-600 dark:text-slate-400 hover:bg-white dark:hover:bg-slate-800 hover:shadow-md flex items-center gap-2"
+                aria-label="Change language"
+            >
+                <IconGlobe className="w-5 h-5" />
+                <span className="text-sm font-medium hidden sm:inline">{currentLang.flag} {currentLang.code.toUpperCase()}</span>
+            </button>
+            
+            {isOpen && (
+                <>
+                    {/* Backdrop */}
+                    <div 
+                        className="fixed inset-0 z-40 bg-black/20 backdrop-blur-sm" 
+                        onClick={() => setIsOpen(false)}
+                    />
+                    {/* Dropdown */}
+                    <div className="absolute right-0 top-full mt-2 z-50 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-xl py-2 min-w-[180px] backdrop-blur-sm">
+                        {languages.map((lang) => (
+                            <button
+                                key={lang.code}
+                                onClick={() => handleLanguageChange(lang.code as Language)}
+                                className={`w-full px-4 py-2 text-left flex items-center gap-3 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors duration-200 ${
+                                    language === lang.code 
+                                        ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400' 
+                                        : 'text-slate-600 dark:text-slate-300'
+                                }`}
+                            >
+                                <span className="text-lg">{lang.flag}</span>
+                                <div className="flex flex-col">
+                                    <span className="font-medium">{lang.name}</span>
+                                    <span className="text-xs opacity-60">{lang.code.toUpperCase()}</span>
+                                </div>
+                                {language === lang.code && (
+                                    <IconCheckCircle className="w-4 h-4 ml-auto text-emerald-500" />
+                                )}
+                            </button>
+                        ))}
                     </div>
-                    <div>
-                        <label className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-1" htmlFor="password">Password</label>
-                        <input id="password" type="password" defaultValue="password" className="w-full bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg p-3 focus:ring-2 focus:ring-emerald-500 focus:outline-none" />
-                    </div>
-                    <Button type="submit" className="w-full">Login</Button>
-                </form>
-            </Card>
+                </>
+            )}
         </div>
     );
 };
 
+const VoiceToggle: React.FC<{ className?: string }> = ({ className }) => {
+    const [isListening, setIsListening] = useState(false);
+    const [isSupported, setIsSupported] = useState(false);
 
-// --- LANDING PAGE ---
-const Section: React.FC<{ children: React.ReactNode; className?: string }> = ({ children, className }) => (
-    <section className={`py-20 ${className}`}>
-        <div className="container mx-auto px-6">{children}</div>
-    </section>
-);
+    useEffect(() => {
+        // Check if speech recognition is supported
+        setIsSupported('webkitSpeechRecognition' in window || 'SpeechRecognition' in window);
+    }, []);
 
-const SectionTitle: React.FC<{ title: string; subtitle: string }> = ({ title, subtitle }) => (
-    <div className="text-center mb-12">
-        <h2 className="text-4xl font-bold">{title}</h2>
-        <p className="text-slate-500 dark:text-slate-400 max-w-2xl mx-auto mt-2">{subtitle}</p>
-    </div>
-);
+    const handleVoiceToggle = () => {
+        if (!isSupported) {
+            alert('Speech recognition is not supported in this browser.');
+            return;
+        }
 
-const LandingPage: React.FC = () => {
-    const navigate = useNavigate();
+        if (isListening) {
+            // Stop listening (dummy implementation)
+            setIsListening(false);
+            console.log('Voice recognition stopped');
+        } else {
+            // Start listening (dummy implementation)
+            setIsListening(true);
+            console.log('Voice recognition started');
+            
+            // Simulate stopping after 3 seconds for demo
+            setTimeout(() => {
+                setIsListening(false);
+                console.log('Voice recognition auto-stopped');
+                // Here you would process the speech result
+                alert('Voice feature is coming soon! This is a demo button.');
+            }, 3000);
+        }
+    };
+
     return (
-        <div className="min-h-screen">
-            <header className="absolute top-0 left-0 w-full p-6 flex justify-between items-center z-10 bg-gradient-to-b from-black/50 to-transparent">
-                <div className="text-2xl font-bold flex items-center gap-2 text-white">
-                    <IconLeaf className="text-emerald-400 w-8 h-8" />
-                    <span>AgriAssist Pro</span>
-                </div>
-                <div className="flex items-center gap-4">
-                    <ThemeToggle className="text-white hover:bg-white/20" />
-                    <Button onClick={() => navigate('/tools')}>Launch App</Button>
-                </div>
-            </header>
-
-            <main>
-                {/* Hero Section */}
-                <section className="relative h-screen flex items-center justify-center text-center overflow-hidden">
-                    <div className="absolute inset-0 bg-black opacity-50 z-0"></div>
-                    <img src="https://picsum.photos/1920/1080?random=1" alt="Lush farm" className="absolute inset-0 w-full h-full object-cover" />
-                    <div className="relative z-10 p-4 text-white">
-                        <h1 className="text-5xl md:text-7xl font-extrabold mb-4 tracking-tight">Empowering Agriculture with AI</h1>
-                        <p className="text-xl md:text-2xl text-slate-200 max-w-3xl mx-auto mb-8">Harness the power of artificial intelligence to optimize your farming operations, from planting to harvest.</p>
-                        <Button onClick={() => navigate('/tools')} className="text-lg py-3 px-8">Get Started</Button>
-                    </div>
-                </section>
-                
-                {/* Features Section */}
-                <Section className="bg-slate-50 dark:bg-slate-900/80 backdrop-blur-sm">
-                    <SectionTitle title="Platform Capabilities" subtitle="All the tools you need for smarter, more efficient farming."/>
-                    <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-                        <FeatureCard icon={<IconBot className="w-10 h-10 text-emerald-400"/>} title="AI Assistant" description="Get instant answers to your farming questions, 24/7."/>
-                        <FeatureCard icon={<IconLeaf className="w-10 h-10 text-emerald-400"/>} title="Disease Detection" description="Upload crop images to identify diseases and receive treatment plans."/>
-                        <FeatureCard icon={<IconChart className="w-10 h-10 text-emerald-400"/>} title="Yield Prediction" description="Forecast crop yields based on environmental and farm data."/>
-                        <FeatureCard icon={<IconDroplet className="w-10 h-10 text-emerald-400"/>} title="Smart Watering" description="Monitor soil moisture and get intelligent watering alerts."/>
-                    </div>
-                </Section>
-
-                {/* How It Works Section */}
-                <Section>
-                    <SectionTitle title="Get Started in 3 Simple Steps" subtitle="Begin your journey towards precision agriculture in minutes." />
-                    <div className="grid md:grid-cols-3 gap-8 text-center">
-                        <HowItWorksStep number="1" title="Create an Account" description="Sign up for free and get immediate access to our full suite of tools." />
-                        <HowItWorksStep number="2" title="Input Your Data" description="Upload crop images or enter farm details to start the analysis." />
-                        <HowItWorksStep number="3" title="Receive AI Insights" description="Get actionable recommendations to boost your farm's productivity and health." />
-                    </div>
-                </Section>
-
-                {/* Tools in Action Section */}
-                 <Section className="bg-slate-200/50 dark:bg-slate-800/50">
-                    <SectionTitle title="Tools in Action" subtitle="See how our AI-powered Disease Detection provides instant, critical insights."/>
-                    <div className="flex flex-col md:flex-row items-center gap-12">
-                        <div className="md:w-1/2">
-                            <h3 className="text-3xl font-bold mb-4">Identify Crop Diseases in Seconds</h3>
-                            <p className="text-slate-500 dark:text-slate-400 mb-4">Don't let diseases ruin your harvest. Our advanced image recognition model, trained on millions of samples, can identify common and rare crop diseases with high accuracy.</p>
-                             <ul className="list-disc list-inside space-y-2 text-slate-600 dark:text-slate-300">
-                                <li>Instant diagnosis from a single photo.</li>
-                                <li>Detailed treatment and prevention plans.</li>
-                                <li>Confidence scores to help you make informed decisions.</li>
-                            </ul>
-                            <Button onClick={() => navigate('/tools/disease-detection')} className="mt-6">Try It Now</Button>
-                        </div>
-                        <div className="md:w-1/2">
-                             <img src="https://picsum.photos/600/400?random=2" alt="Disease detection tool interface" className="rounded-lg shadow-2xl border-4 border-slate-300 dark:border-slate-700" />
-                        </div>
-                    </div>
-                </Section>
-                
-                {/* Testimonials Section */}
-                <Section>
-                    <SectionTitle title="Trusted by Farmers Worldwide" subtitle="Hear what our users have to say about their success with AgriAssist Pro." />
-                    <div className="grid md:grid-cols-2 gap-8">
-                        <TestimonialCard quote="This platform has been a game-changer. The yield prediction tool was incredibly accurate and helped me optimize my fertilizer use, saving me thousands." name="John D." location="California, USA" />
-                        <TestimonialCard quote="As a small-scale farmer, the disease detection feature is invaluable. I can quickly identify issues and treat them before they spread. Highly recommended!" name="Maria S." location="Jalisco, Mexico" />
-                    </div>
-                </Section>
-
-                {/* CTA Section */}
-                <Section className="bg-emerald-900/10 dark:bg-emerald-900/30 text-center">
-                     <h2 className="text-4xl font-bold mb-4">Ready to Revolutionize Your Farm?</h2>
-                     <p className="text-slate-600 dark:text-slate-300 max-w-2xl mx-auto mb-8">Join thousands of farmers who are using AI to build a more profitable and sustainable future. Get started for free today.</p>
-                     <Button onClick={() => navigate('/tools')} className="text-lg py-3 px-8">Sign Up Now</Button>
-                </Section>
-            </main>
-            <Footer />
-        </div>
+        <button 
+            onClick={handleVoiceToggle}
+            className={`p-2 rounded-full transition-all duration-300 ${className} ${
+                isListening 
+                    ? 'bg-red-500 text-white animate-pulse' 
+                    : 'text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-800'
+            } ${!isSupported ? 'opacity-50 cursor-not-allowed' : ''}`}
+            aria-label={isListening ? "Stop voice input" : "Start voice input"}
+            disabled={!isSupported}
+        >
+            {isListening ? (
+                <IconMicrophoneSlash className="w-5 h-5" />
+            ) : (
+                <IconMicrophone className="w-5 h-5" />
+            )}
+        </button>
     );
 };
-const FeatureCard: React.FC<{icon: React.ReactNode, title: string, description: string}> = ({ icon, title, description }) => (
-    <div className="bg-slate-100 dark:bg-slate-800 p-8 rounded-lg border border-slate-200 dark:border-slate-700 transition-transform duration-300 hover:-translate-y-2">
-        <div className="mb-4">{icon}</div>
-        <h3 className="text-2xl font-bold mb-2">{title}</h3>
-        <p className="text-slate-500 dark:text-slate-400">{description}</p>
-    </div>
-);
-const HowItWorksStep: React.FC<{number: string, title: string, description: string}> = ({ number, title, description }) => (
-    <div className="relative">
-        <div className="absolute -top-8 left-1/2 -translate-x-1/2 w-16 h-16 bg-slate-200 dark:bg-slate-700 text-emerald-400 text-2xl font-bold rounded-full flex items-center justify-center border-4 border-slate-100 dark:border-slate-900">{number}</div>
-        <Card className="pt-12 h-full">
-            <h3 className="text-xl font-bold mb-2">{title}</h3>
-            <p className="text-slate-500 dark:text-slate-400">{description}</p>
-        </Card>
-    </div>
-);
-const TestimonialCard: React.FC<{quote: string, name: string, location: string}> = ({ quote, name, location }) => (
-    <Card className="flex flex-col">
-        <IconQuote className="w-10 h-10 text-slate-300 dark:text-slate-600 mb-4" />
-        <p className="text-slate-600 dark:text-slate-300 italic flex-1">"{quote}"</p>
-        <div className="mt-4 text-right">
-            <p className="font-bold text-emerald-500 dark:text-emerald-400">{name}</p>
-            <p className="text-sm text-slate-400 dark:text-slate-500">{location}</p>
-        </div>
-    </Card>
-);
-const Footer: React.FC = () => (
-    <footer className="bg-slate-200 dark:bg-slate-950/50 border-t border-slate-300 dark:border-slate-800 text-slate-500 dark:text-slate-400">
-        <div className="container mx-auto px-6 py-12">
-            <div className="grid md:grid-cols-4 gap-8">
-                <div>
-                    <div className="text-xl font-bold flex items-center gap-2 text-slate-900 dark:text-white mb-2">
-                        <IconLeaf className="text-emerald-400 w-7 h-7" />
-                        <span>AgriAssist Pro</span>
-                    </div>
-                    <p className="max-w-xs">Empowering farmers with AI technology for a sustainable and productive future in agriculture.</p>
-                </div>
-                <div>
-                    <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">Quick Links</h3>
-                    <ul>
-                        <li className="mb-2"><Link to="/" className="hover:text-emerald-500 dark:hover:text-emerald-400">Home</Link></li>
-                        <li className="mb-2"><Link to="/tools" className="hover:text-emerald-500 dark:hover:text-emerald-400">Tools</Link></li>
-                    </ul>
-                </div>
-                <div>
-                    <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">Follow Us</h3>
-                    <div className="flex space-x-4">
-                        <a href="#" className="hover:text-emerald-500 dark:hover:text-emerald-400"><IconTwitter /></a>
-                        <a href="#" className="hover:text-emerald-500 dark:hover:text-emerald-400"><IconLinkedIn /></a>
-                    </div>
-                </div>
-                 <div>
-                    <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">Language</h3>
-                    <LanguageTranslator />
-                </div>
-            </div>
-            <div className="mt-12 border-t border-slate-300 dark:border-slate-800 pt-6 text-center text-sm">
-                <p>&copy; {new Date().getFullYear()} AgriAssist Pro. All Rights Reserved.</p>
-            </div>
-        </div>
-    </footer>
-);
+// LanguageTranslator removed per request.
+
+// --- AUTH & ROUTING ---
+const ProtectedRoute: React.FC = () => {
+    // Use Clerk's SignedIn/SignedOut components to gate routes
+    return (
+        <>
+            <SignedIn>
+                <Outlet />
+            </SignedIn>
+            <SignedOut>
+                <RedirectToSignIn />
+            </SignedOut>
+        </>
+    );
+};
+// Login UI is provided by Clerk's <SignIn /> component at /sign-in
 
 
 // --- TOOLS PAGE LAYOUT ---
-const tools = [
-    { name: 'AI Assistant', path: '/tools/assistant', icon: <IconBot /> },
-    { name: 'Disease Detection', path: '/tools/disease-detection', icon: <IconLeaf /> },
-    { name: 'Yield Prediction', path: '/tools/yield-prediction', icon: <IconChart /> },
-    { name: 'Market Advisor', path: '/tools/market-advisor', icon: <IconTrendingUp /> },
-    { name: 'Smart Watering', path: '/tools/watering', icon: <IconDroplet /> },
-    { name: 'User Dashboard', path: '/tools/dashboard', icon: <IconDashboard /> },
-];
-const profileTool = { name: 'Profile', path: '/tools/profile', icon: <IconUser /> };
-const allToolsForMobile = [...tools, profileTool];
-
 const ToolsPage: React.FC = () => {
     const location = useLocation();
-    const { logout } = useAuth();
+    const clerk = useClerk();
+    const { t } = useLanguage();
+
+    const tools = [
+        { name: t('nav.assistant'), path: '/tools/assistant', icon: <IconBot /> },
+        { name: t('nav.disease'), path: '/tools/disease-detection', icon: <IconLeaf /> },
+        { name: t('nav.yield'), path: '/tools/yield-prediction', icon: <IconChart /> },
+        { name: t('nav.market'), path: '/tools/market-advisor', icon: <IconTrendingUp /> },
+        { name: t('nav.watering'), path: '/tools/watering', icon: <IconDroplet /> },
+        { name: t('nav.dashboard'), path: '/tools/dashboard', icon: <IconDashboard /> },
+    ];
+    const profileTool = { name: t('nav.profile'), path: '/tools/profile', icon: <IconUser /> };
+    const allToolsForMobile = [...tools, profileTool];
 
     return (
         <div className="flex flex-col md:flex-row h-screen bg-transparent overflow-hidden">
@@ -496,7 +979,7 @@ const ToolsPage: React.FC = () => {
                 <div className="p-4 hidden md:block">
                     <Link to="/" className="text-2xl font-bold flex items-center gap-2 text-slate-900 dark:text-white">
                         <IconLeaf className="text-emerald-400 w-8 h-8" />
-                        <span>AgriAssist Pro</span>
+                        <span>{t('app.name')}</span>
                     </Link>
                 </div>
                 <div className="flex-1 flex flex-col justify-between">
@@ -521,30 +1004,38 @@ const ToolsPage: React.FC = () => {
                                 </li>
                             ))}
                         </ul>
+                        {/* Voice Toggle Section */}
+                        <div className="mt-6 pt-4 border-t border-slate-200 dark:border-slate-700">
+                            <div className="flex items-center justify-between mb-2">
+                                <span className="text-sm font-medium text-slate-500 dark:text-slate-400">Voice Assistant</span>
+                                <VoiceToggle />
+                            </div>
+                            <p className="text-xs text-slate-400 dark:text-slate-500">Click to start voice input</p>
+                        </div>
                     </nav>
                     <nav className="hidden md:block p-4">
                          <ul>
                             <li>
                                 <Link to={profileTool.path} className={`flex items-center gap-3 py-3 px-4 rounded-lg mb-2 transition-colors duration-200 ${location.pathname.startsWith(profileTool.path) ? 'bg-emerald-600 text-white font-semibold' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800'}`}>
                                     {profileTool.icon}
-                                    {profileTool.name}
+                                    {t('nav.profile')}
                                 </Link>
                             </li>
                         </ul>
+                        {/* Language moved to top-right; keep sidebar clean to avoid duplicate widgets */}
                     </nav>
                 </div>
                 <div className="p-4 border-t border-slate-200 dark:border-slate-800 flex justify-between items-center">
-                     <button onClick={logout} className="flex items-center gap-3 py-2 px-3 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-red-500/10 hover:text-red-500 dark:hover:bg-red-800/50 dark:hover:text-red-300 transition-colors duration-200">
+                    <button onClick={() => clerk.signOut()} className="flex items-center gap-3 py-2 px-3 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-red-500/10 hover:text-red-500 dark:hover:bg-red-800/50 dark:hover:text-red-300 transition-colors duration-200">
                         <IconLogout className="w-5 h-5"/>
-                        <span className="text-sm font-medium hidden md:inline">Logout</span>
+                        <span className="text-sm font-medium hidden md:inline">{t('nav.logout')}</span>
                     </button>
                     <div className="flex items-center gap-2">
-                        <LanguageTranslator />
                         <ThemeToggle />
                     </div>
                 </div>
             </aside>
-            <main className="flex-1 overflow-y-auto p-4 md:p-8">
+            <main className="flex-1 overflow-y-auto p-4 md:p-8 relative">
                 <Outlet />
             </main>
         </div>
@@ -557,6 +1048,7 @@ const ChatInterface: React.FC<{ isFullScreen: boolean }> = ({ isFullScreen }) =>
     const { messages, sendMessage, isLoading, clearMessages } = useChat();
     const [input, setInput] = useState('');
     const messagesEndRef = useRef<HTMLDivElement>(null);
+    const { t } = useLanguage();
 
     useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages]);
 
@@ -569,7 +1061,7 @@ const ChatInterface: React.FC<{ isFullScreen: boolean }> = ({ isFullScreen }) =>
         }
     };
 
-    const suggestionChips = ["Best fertilizer for corn?", "How to treat tomato blight?", "When is the best time to plant soybeans?", "Improve soil quality"];
+    const suggestionChips = [t('ai.suggestion1'), t('ai.suggestion2'), t('ai.suggestion3'), t('ai.suggestion4')];
 
     const chatBody = (
         <div className="flex-1 p-6 space-y-4 overflow-y-auto">
@@ -612,7 +1104,7 @@ const ChatInterface: React.FC<{ isFullScreen: boolean }> = ({ isFullScreen }) =>
                 ))}
             </div>
             <form onSubmit={handleSendMessage} className="flex items-center gap-4">
-                <input type="text" value={input} onChange={(e) => setInput(e.target.value)} placeholder="Ask about crops, soil, or anything farming-related..." className="flex-1 bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg p-3 focus:ring-2 focus:ring-emerald-500 focus:outline-none" disabled={isLoading} />
+                <input type="text" value={input} onChange={(e) => setInput(e.target.value)} placeholder={t('ai.placeholder')} className="flex-1 bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg p-3 focus:ring-2 focus:ring-emerald-500 focus:outline-none" disabled={isLoading} />
                 <Button onClick={clearMessages} className="p-3 bg-slate-500 hover:bg-slate-600" disabled={isLoading}>
                     <IconClear className="w-6 h-6"/>
                 </Button>
@@ -630,6 +1122,7 @@ const ChatInterface: React.FC<{ isFullScreen: boolean }> = ({ isFullScreen }) =>
 const AIAssistant: React.FC = () => {
     const [showModal, setShowModal] = useState(() => !sessionStorage.getItem('agri_assistant_modal_seen'));
     const navigate = useNavigate();
+    const { t } = useLanguage();
 
     const handleModalClose = () => {
         setShowModal(false);
@@ -651,10 +1144,13 @@ const AIAssistant: React.FC = () => {
                     </Card>
                 </div>
             )}
-            <ToolHeader icon={<IconBot className="w-10 h-10" />} title="AI Agricultural Assistant" subtitle="Your on-demand farming expert. Ask me anything.">
-                 <Button onClick={() => navigate('/tools/assistant/fullscreen')} className="bg-slate-200 hover:bg-slate-300 text-slate-700 dark:bg-slate-700 dark:hover:bg-slate-600 dark:text-white">
-                    <IconExpand /> Fullscreen
-                </Button>
+            <ToolHeader icon={<IconBot className="w-10 h-10" />} title={t('ai.title')} subtitle={t('ai.subtitle')}>
+                <div className="flex items-center gap-3">
+                    <LanguageToggle />
+                    <Button onClick={() => navigate('/tools/assistant/fullscreen')} className="bg-slate-200 hover:bg-slate-300 text-slate-700 dark:bg-slate-700 dark:hover:bg-slate-600 dark:text-white">
+                        <IconExpand /> {t('action.fullscreen')}
+                    </Button>
+                </div>
             </ToolHeader>
             <ChatInterface isFullScreen={false} />
         </div>
@@ -663,13 +1159,17 @@ const AIAssistant: React.FC = () => {
 
 const AIAssistantFullScreen: React.FC = () => {
     const navigate = useNavigate();
+    const { t } = useLanguage();
     return (
         <div className="h-screen flex flex-col bg-slate-100 dark:bg-slate-900">
              <header className="p-4 bg-white/80 dark:bg-slate-950/50 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 flex justify-between items-center">
-                <h1 className="text-xl font-bold flex items-center gap-2"><IconBot/> AI Assistant</h1>
-                <Button onClick={() => navigate('/tools/assistant')} className="bg-slate-200 hover:bg-slate-300 text-slate-700 dark:bg-slate-700 dark:hover:bg-slate-600 dark:text-white">
-                    <IconCollapse /> Collapse
-                </Button>
+                <h1 className="text-xl font-bold flex items-center gap-2"><IconBot/> {t('nav.assistant')}</h1>
+                <div className="flex items-center gap-3">
+                    <LanguageToggle />
+                    <Button onClick={() => navigate('/tools/assistant')} className="bg-slate-200 hover:bg-slate-300 text-slate-700 dark:bg-slate-700 dark:hover:bg-slate-600 dark:text-white">
+                        <IconCollapse /> {t('action.collapse')}
+                    </Button>
+                </div>
             </header>
             <main className="flex-1 overflow-hidden">
                 <ChatInterface isFullScreen={true} />
@@ -682,10 +1182,14 @@ const AIAssistantFullScreen: React.FC = () => {
 const DiseaseDetection: React.FC = () => {
     const [imageFile, setImageFile] = useState<File | null>(null);
     const [imagePreview, setImagePreview] = useState<string | null>(null);
+    const [usingCamera, setUsingCamera] = useState(false);
+    const [stream, setStream] = useState<MediaStream | null>(null);
+    const videoRef = useRef<HTMLVideoElement | null>(null);
     const [result, setResult] = useState<DiseaseAnalysisResult | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const { addActivity } = useActivity();
+    const { user } = useUser();
 
     const fileToBase64 = (file: File): Promise<string> => new Promise((resolve, reject) => {
         const reader = new FileReader();
@@ -704,6 +1208,46 @@ const DiseaseDetection: React.FC = () => {
             setError(null);
         }
     };
+
+    const startCamera = async () => {
+        if (usingCamera) return;
+        try {
+            const s = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: false });
+            setStream(s);
+            setUsingCamera(true);
+            if (videoRef.current) videoRef.current.srcObject = s;
+        } catch (err) {
+            console.error('Camera error', err);
+            setUsingCamera(false);
+        }
+    };
+
+    const stopCamera = () => {
+        if (stream) {
+            stream.getTracks().forEach(t => t.stop());
+            setStream(null);
+        }
+        setUsingCamera(false);
+    };
+
+    const captureFromCamera = async () => {
+        if (!videoRef.current) return;
+        const video = videoRef.current;
+        const canvas = document.createElement('canvas');
+        canvas.width = video.videoWidth || 1280;
+        canvas.height = video.videoHeight || 720;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        const blob: Blob | null = await new Promise(resolve => canvas.toBlob(b => resolve(b), 'image/jpeg', 0.92));
+        if (blob) {
+            const file = new File([blob], `capture-${Date.now()}.jpg`, { type: 'image/jpeg' });
+            setImageFile(file);
+            setImagePreview(URL.createObjectURL(file));
+            // stop camera after capture for privacy
+            stopCamera();
+        }
+    };
     
     const handleAnalyze = async () => {
         if (!imageFile) { setError("Please upload an image first."); return; }
@@ -715,11 +1259,41 @@ const DiseaseDetection: React.FC = () => {
             const analysis = await GeminiService.analyzeCropDisease(base64Image, imageFile.type);
             setResult(analysis);
             addActivity({ icon: 'disease', description: `Analyzed plant for ${analysis.disease}.` });
+            
+            // Save to Supabase
+            if (user) {
+                await saveDiseaseAnalysisToSupabase(analysis);
+            }
         } catch (err) {
             console.error(err);
             setError("Failed to analyze image. Please try again.");
         } finally {
             setIsLoading(false);
+        }
+    };
+
+    const saveDiseaseAnalysisToSupabase = async (analysisResult: any) => {
+        try {
+            console.log('Saving disease analysis to Supabase...', { userId: user!.id, analysis: analysisResult });
+            const { default: supabase } = await import('./services/supabaseClient');
+
+            const { data, error } = await supabase
+                .from('analyses')
+                .insert({
+                    user_id: user!.id,
+                    result: analysisResult,
+                    disease: analysisResult.disease,
+                    confidence: analysisResult.confidence,
+                    created_at: new Date().toISOString()
+                });
+
+            if (error) {
+                console.error('❌ Error saving analysis to Supabase:', error);
+            } else {
+                console.log('✅ Disease analysis saved successfully:', data);
+            }
+        } catch (error) {
+            console.error('❌ Error connecting to Supabase:', error);
         }
     };
 
@@ -733,6 +1307,13 @@ const DiseaseDetection: React.FC = () => {
                         <div>
                             <label htmlFor="imageUpload" className="block mb-2 text-sm font-medium text-slate-600 dark:text-slate-300">Upload Image (Max 10MB)</label>
                             <input id="imageUpload" type="file" accept="image/jpeg, image/png" onChange={handleFileChange} className="block w-full text-sm text-slate-500 dark:text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-emerald-600 file:text-white hover:file:bg-emerald-500" />
+                            <div className="mt-3 flex items-center gap-2">
+                                <button type="button" onClick={usingCamera ? stopCamera : startCamera} className="px-3 py-2 bg-emerald-600 text-white rounded-md">{usingCamera ? 'Stop Camera' : 'Use Camera'}</button>
+                                {usingCamera && <button type="button" onClick={captureFromCamera} className="px-3 py-2 bg-slate-200 dark:bg-slate-700 rounded-md">Capture</button>}
+                            </div>
+                            {usingCamera && <div className="mt-3">
+                                <video ref={videoRef} autoPlay playsInline muted className="w-full rounded-lg border" style={{ maxHeight: 360 }} />
+                            </div>}
                         </div>
                         {imagePreview && <img src={imagePreview} alt="Crop preview" className="mt-4 rounded-lg max-h-60 w-auto mx-auto" />}
                         <Button onClick={handleAnalyze} disabled={isLoading || !imageFile} className="w-full mt-4">
@@ -775,6 +1356,7 @@ const YieldPrediction: React.FC = () => {
     const { addActivity } = useActivity();
     const { theme } = useTheme();
     const { profile } = useProfile();
+    const { user } = useUser();
     const navigate = useNavigate();
 
     const handlePredict = async () => {
@@ -795,11 +1377,40 @@ const YieldPrediction: React.FC = () => {
             const prediction = await GeminiService.predictYield(params);
             setResult(prediction);
             addActivity({ icon: 'yield', description: `Predicted ${crop} yield: ${prediction.predictedYield} T/ha.` });
+            
+            // Save to Supabase
+            if (user) {
+                await saveYieldPredictionToSupabase(params, prediction);
+            }
         } catch (err) {
             console.error(err);
             setError("Failed to get prediction. Please try again.");
         } finally {
             setIsLoading(false);
+        }
+    };
+
+    const saveYieldPredictionToSupabase = async (params: YieldPredictionParams, prediction: any) => {
+        try {
+            console.log('Saving yield prediction to Supabase...', { userId: user!.id, params, prediction });
+            const { default: supabase } = await import('./services/supabaseClient');
+
+            const { data, error } = await supabase
+                .from('yield_predictions')
+                .insert({
+                    user_id: user!.id,
+                    params: params,
+                    result: prediction,
+                    created_at: new Date().toISOString()
+                });
+
+            if (error) {
+                console.error('❌ Error saving yield prediction to Supabase:', error);
+            } else {
+                console.log('✅ Yield prediction saved successfully:', data);
+            }
+        } catch (error) {
+            console.error('❌ Error connecting to Supabase:', error);
         }
     };
     
@@ -886,6 +1497,7 @@ const SmartWatering: React.FC = () => {
     const [advice, setAdvice] = useState('');
     const [isLoadingAdvice, setIsLoadingAdvice] = useState(false);
     const { addActivity } = useActivity();
+    const { user } = useUser();
     
     useEffect(() => {
         const interval = setInterval(() => {
@@ -906,6 +1518,11 @@ const SmartWatering: React.FC = () => {
                     });
                 }
                 addActivity({ icon: 'watering', description: `Watering alert for ${crop} (Moisture: ${moisture.toFixed(1)}%).`});
+                
+                // Save watering event to Supabase
+                if (user) {
+                    await saveWateringEventToSupabase(crop, moisture, threshold, newAdvice);
+                }
             }
         } catch (error) {
             console.error(error);
@@ -913,7 +1530,33 @@ const SmartWatering: React.FC = () => {
         } finally {
             setIsLoadingAdvice(false);
         }
-    }, [crop, moisture, threshold, notifications, addActivity]);
+    }, [crop, moisture, threshold, notifications, addActivity, user]);
+
+    const saveWateringEventToSupabase = async (crop: string, moisture: number, threshold: number, advice: string) => {
+        try {
+            console.log('Saving watering event to Supabase...', { userId: user!.id, crop, moisture, threshold });
+            const { default: supabase } = await import('./services/supabaseClient');
+
+            const { data, error } = await supabase
+                .from('tool_events')
+                .insert({
+                    user_id: user!.id,
+                    tool_name: 'smart_watering',
+                    input: { crop, moisture, threshold },
+                    output: { advice, alert_triggered: moisture < threshold },
+                    status: 'completed',
+                    created_at: new Date().toISOString()
+                });
+
+            if (error) {
+                console.error('❌ Error saving watering event to Supabase:', error);
+            } else {
+                console.log('✅ Watering event saved successfully:', data);
+            }
+        } catch (error) {
+            console.error('❌ Error connecting to Supabase:', error);
+        }
+    };
     
     useEffect(() => { const timer = setTimeout(() => fetchAdvice(), 500); return () => clearTimeout(timer);}, [fetchAdvice]);
 
@@ -980,6 +1623,7 @@ const MarketAdvisor: React.FC = () => {
     const [error, setError] = useState<string | null>(null);
     const { addActivity } = useActivity();
     const { profile } = useProfile();
+    const { user } = useUser();
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -1002,11 +1646,42 @@ const MarketAdvisor: React.FC = () => {
             const analysis = await GeminiService.getMarketAnalysis(selectedCrop, profile.location);
             setResult(analysis);
             addActivity({ icon: 'market', description: `Analyzed market for ${selectedCrop}.` });
+            
+            // Save to Supabase
+            if (user) {
+                await saveMarketAnalysisToSupabase(selectedCrop, analysis);
+            }
         } catch (err) {
             console.error(err);
             setError("Failed to get market analysis. Please try again.");
         } finally {
             setIsLoading(false);
+        }
+    };
+
+    const saveMarketAnalysisToSupabase = async (crop: string, analysis: any) => {
+        try {
+            console.log('Saving market analysis to Supabase...', { userId: user!.id, crop, analysis });
+            const { default: supabase } = await import('./services/supabaseClient');
+
+            const { data, error } = await supabase
+                .from('tool_events')
+                .insert({
+                    user_id: user!.id,
+                    tool_name: 'market_analysis',
+                    input: { crop, location: profile.location },
+                    output: analysis,
+                    status: 'completed',
+                    created_at: new Date().toISOString()
+                });
+
+            if (error) {
+                console.error('❌ Error saving market analysis to Supabase:', error);
+            } else {
+                console.log('✅ Market analysis saved successfully:', data);
+            }
+        } catch (error) {
+            console.error('❌ Error connecting to Supabase:', error);
         }
     };
 
@@ -1185,15 +1860,62 @@ const ProfilePage: React.FC = () => {
 
 // --- MAIN APP COMPONENT ---
 export default function App() {
+    // Protect Material Symbols icon ligatures from being translated by third-party translators
+    useEffect(() => {
+        // Ensure Material Symbols font is loaded so restored text renders as icons
+        if (!document.querySelector('link[href*="Material+Symbols+Outlined"]')) {
+            const ms = document.createElement('link');
+            ms.href = 'https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined';
+            ms.rel = 'stylesheet';
+            document.head.appendChild(ms);
+        }
+
+        const protectIcons = () => {
+            document.querySelectorAll<HTMLElement>('.material-symbols-outlined').forEach(el => {
+                el.classList.add('notranslate');
+                el.setAttribute('translate', 'no');
+                if (!el.dataset.iconName) el.dataset.iconName = (el.textContent || '').trim();
+            });
+        };
+
+        protectIcons();
+
+        const observer = new MutationObserver(mutations => {
+            for (const m of mutations) {
+                if (m.type === 'characterData') {
+                    const parent = (m.target as CharacterData).parentElement as HTMLElement | null;
+                    if (parent?.classList?.contains('material-symbols-outlined')) {
+                        const orig = parent.dataset.iconName;
+                        if (orig && (parent.textContent || '').trim() !== orig) {
+                            parent.textContent = orig;
+                        }
+                    }
+                } else if (m.type === 'childList' && m.addedNodes.length) {
+                    // Protect any newly added icons
+                    protectIcons();
+                }
+            }
+        });
+
+        observer.observe(document.body, { childList: true, subtree: true, characterData: true });
+
+        // Expose for debugging if needed
+        (window as any).__agri_icon_protect = { disconnect: () => observer.disconnect() };
+
+        return () => {
+            observer.disconnect();
+            try { delete (window as any).__agri_icon_protect; } catch (e) { }
+        };
+    }, []);
   return (
     <ThemeProvider>
-        <AuthProvider>
+        <LanguageProvider>
             <ProfileProvider>
                 <ActivityProvider>
                     <ChatProvider>
                         <Routes>
-                            <Route path="/login" element={<LoginPage />} />
                             <Route path="/" element={<LandingPage />} />
+                            <Route path="/sign-in" element={<SignIn routing="path" path="/sign-in" />} />
                             <Route path="/tools" element={<ProtectedRoute />}>
                                 <Route path="" element={<ToolsPage />}>
                                     <Route index element={<Navigate to="assistant" replace />} />
@@ -1214,7 +1936,7 @@ export default function App() {
                     </ChatProvider>
                 </ActivityProvider>
             </ProfileProvider>
-        </AuthProvider>
+        </LanguageProvider>
     </ThemeProvider>
   );
 }

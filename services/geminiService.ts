@@ -42,16 +42,43 @@ const mockMarketAnalysis: MarketAnalysisResult = {
 
 // --- CHAT SERVICE ---
 let chat: Chat | null = null;
+let currentLanguage: string = 'en';
 
-export const startChat = (profile?: UserProfile): Chat => {
+export const startChat = (profile?: UserProfile, language: string = 'en'): Chat => {
+    // Reset chat if language changed
+    if (chat && currentLanguage !== language) {
+        chat = null;
+    }
+    
     if (chat) {
         return chat;
     }
+    
+    currentLanguage = language;
+    
     if (!ai) {
         throw new Error("Cannot start chat session without a valid API key.");
     }
 
-    let systemInstruction = "You are AgriAssist Pro, a friendly and knowledgeable AI assistant for farmers. Provide concise, actionable advice on agriculture, covering topics like crop diseases, soil management, irrigation, and yield prediction. Always be supportive and clear.";
+    // Language name mapping for better context
+    const languageNames: Record<string, string> = {
+        'en': 'English',
+        'hi': 'Hindi (हिंदी)',
+        'bn': 'Bengali (বাংলা)',
+        'ta': 'Tamil (தமிழ்)',
+        'te': 'Telugu (తెలుగు)', 
+        'mr': 'Marathi (मराठी)',
+        'gu': 'Gujarati (ગુજરાતી)',
+        'kn': 'Kannada (ಕನ್ನಡ)',
+        'ml': 'Malayalam (മലയാളം)',
+        'pa': 'Punjabi (ਪੰਜਾਬੀ)'
+    };
+
+    const selectedLanguage = languageNames[language] || 'English';
+
+    let systemInstruction = `You are AgriAssist Pro, a friendly and knowledgeable AI assistant for farmers. Provide concise, actionable advice on agriculture, covering topics like crop diseases, soil management, irrigation, and yield prediction. Always be supportive and clear.
+
+IMPORTANT: The user has selected ${selectedLanguage} as their preferred language. Please respond in ${selectedLanguage}. If the user writes in English but has selected another language, respond in the selected language (${selectedLanguage}).`;
 
     if (profile) {
         const profileParts = [
@@ -79,7 +106,7 @@ export const startChat = (profile?: UserProfile): Chat => {
     return chat;
 };
 
-export async function* streamChatResponse(message: string, profile?: UserProfile) {
+export async function* streamChatResponse(message: string, profile?: UserProfile, language: string = 'en') {
     if (useMockData) {
         for (const word of mockChatResponse.split(" ")) {
             await new Promise(res => setTimeout(res, 50));
@@ -88,13 +115,18 @@ export async function* streamChatResponse(message: string, profile?: UserProfile
         return;
     }
 
-    const chatInstance = startChat(profile);
+    const chatInstance = startChat(profile, language);
     const result = await chatInstance.sendMessageStream({ message });
 
     for await (const chunk of result) {
         yield chunk.text;
     }
 }
+
+export const resetChat = () => {
+    chat = null;
+    currentLanguage = 'en';
+};
 
 // --- DISEASE DETECTION SERVICE ---
 export const analyzeCropDisease = async (base64Image: string, mimeType: string): Promise<any> => {
