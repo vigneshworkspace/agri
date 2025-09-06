@@ -1,0 +1,7 @@
+{
+  "name": "AgriAssist Pro",
+  "description": "An AI-powered agricultural platform that helps farmers optimize their operations through advanced tools for disease detection, yield prediction, smart watering, and an intelligent assistant.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
