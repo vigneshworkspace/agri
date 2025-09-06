@@ -13,6 +13,7 @@ const IconChart = ({ className = "w-6 h-6" }) => <svg xmlns="http://www.w3.org/2
 const IconDroplet = ({ className = "w-6 h-6" }) => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={className}><path d="M12 2C8.13 2 5 5.13 5 9c0 3.39 3.4 7.64 6.15 10.39.29.29.77.29 1.06 0C15.6 16.64 19 12.39 19 9c0-3.87-3.13-7-7-7zm0 11.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" /></svg>;
 const IconDashboard = ({ className = "w-6 h-6" }) => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={className}><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z" /></svg>;
 const IconSend = ({ className = "w-6 h-6" }) => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={className}><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" /></svg>;
+const IconClear = ({ className = "w-6 h-6" }) => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}><path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" /></svg>;
 const IconUpload = ({ className = "w-6 h-6" }) => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={className}><path d="M9 16h6v-6h4l-7-7-7 7h4v6zm-4 2h14v2H5v-2z" /></svg>;
 const IconCheckCircle = ({ className = "w-6 h-6" }) => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={className}><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" /></svg>;
 const IconAlert = ({ className = "w-6 h-6" }) => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={className}><path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z" /></svg>;
@@ -127,7 +128,7 @@ const ActivityProvider: React.FC<{ children: React.ReactNode }> = ({ children })
 export const useActivity = () => useContext(ActivityContext)!;
 
 // Chat Context
-interface ChatContextType { messages: ChatMessage[]; sendMessage: (messageText: string) => Promise<void>; isLoading: boolean; }
+interface ChatContextType { messages: ChatMessage[]; sendMessage: (messageText: string) => Promise<void>; isLoading: boolean; clearMessages: () => void; }
 const ChatContext = createContext<ChatContextType | null>(null);
 const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [messages, setMessages] = useState<ChatMessage[]>(() => {
@@ -170,7 +171,11 @@ const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
         }
     };
 
-    return <ChatContext.Provider value={{ messages, sendMessage, isLoading }}>{children}</ChatContext.Provider>;
+    const clearMessages = () => {
+        setMessages([{ role: 'model', text: 'Hello! I am AgriAssist Pro. How can I help you with your farming needs today?' }]);
+    };
+
+    return <ChatContext.Provider value={{ messages, sendMessage, isLoading, clearMessages }}>{children}</ChatContext.Provider>;
 };
 export const useChat = () => useContext(ChatContext)!;
 
@@ -549,7 +554,7 @@ const ToolsPage: React.FC = () => {
 
 // --- AI ASSISTANT (CHAT COMPONENT) ---
 const ChatInterface: React.FC<{ isFullScreen: boolean }> = ({ isFullScreen }) => {
-    const { messages, sendMessage, isLoading } = useChat();
+    const { messages, sendMessage, isLoading, clearMessages } = useChat();
     const [input, setInput] = useState('');
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -608,6 +613,9 @@ const ChatInterface: React.FC<{ isFullScreen: boolean }> = ({ isFullScreen }) =>
             </div>
             <form onSubmit={handleSendMessage} className="flex items-center gap-4">
                 <input type="text" value={input} onChange={(e) => setInput(e.target.value)} placeholder="Ask about crops, soil, or anything farming-related..." className="flex-1 bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg p-3 focus:ring-2 focus:ring-emerald-500 focus:outline-none" disabled={isLoading} />
+                <Button onClick={clearMessages} className="p-3 bg-slate-500 hover:bg-slate-600" disabled={isLoading}>
+                    <IconClear className="w-6 h-6"/>
+                </Button>
                 <Button type="submit" className="p-3" disabled={isLoading}><IconSend className="w-6 h-6"/></Button>
             </form>
         </div>
