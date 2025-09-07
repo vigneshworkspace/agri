@@ -93,7 +93,7 @@ const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) =>
     return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
 };
 
-export const useTheme = () => useContext(ThemeContext)!;
+const useTheme = () => useContext(ThemeContext)!;
 
 // Language Context
 type Language = 'en' | 'es' | 'fr' | 'de' | 'hi' | 'zh';
@@ -458,7 +458,7 @@ const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ children })
     return <LanguageContext.Provider value={value}>{children}</LanguageContext.Provider>;
 };
 
-export const useLanguage = () => useContext(LanguageContext)!;
+const useLanguage = () => useContext(LanguageContext)!;
 
 // Clerk will provide authentication state; local AuthContext removed in favor of Clerk
 
@@ -482,7 +482,7 @@ const ActivityProvider: React.FC<{ children: React.ReactNode }> = ({ children })
     };
     return <ActivityContext.Provider value={{ activities, addActivity }}>{children}</ActivityContext.Provider>;
 };
-export const useActivity = () => useContext(ActivityContext)!;
+const useActivity = () => useContext(ActivityContext)!;
 
 // Chat Context
 interface ChatContextType { messages: ChatMessage[]; sendMessage: (messageText: string) => Promise<void>; isLoading: boolean; clearMessages: () => void; }
@@ -609,7 +609,7 @@ const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
 
     return <ChatContext.Provider value={{ messages, sendMessage, isLoading, clearMessages }}>{children}</ChatContext.Provider>;
 };
-export const useChat = () => useContext(ChatContext)!;
+const useChat = () => useContext(ChatContext)!;
 
 // Profile Context
 interface ProfileContextType { profile: UserProfile; updateProfile: (newProfile: UserProfile) => void; }
@@ -746,7 +746,7 @@ const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ children }) 
     };
     return <ProfileContext.Provider value={{ profile, updateProfile }}>{children}</ProfileContext.Provider>;
 };
-export const useProfile = () => useContext(ProfileContext)!;
+const useProfile = () => useContext(ProfileContext)!;
 
 
 // --- UI COMPONENTS ---
@@ -1276,12 +1276,23 @@ const DiseaseDetection: React.FC = () => {
     const startCamera = async () => {
         if (usingCamera) return;
         try {
-            const s = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: false });
+            const s = await navigator.mediaDevices.getUserMedia({ 
+                video: { 
+                    facingMode: { ideal: 'environment' },
+                    width: { ideal: 1280 },
+                    height: { ideal: 720 }
+                }, 
+                audio: false 
+            });
             setStream(s);
             setUsingCamera(true);
-            if (videoRef.current) videoRef.current.srcObject = s;
+            if (videoRef.current) {
+                videoRef.current.srcObject = s;
+                videoRef.current.play();
+            }
         } catch (err) {
             console.error('Camera error', err);
+            setError('Camera access denied or not available');
             setUsingCamera(false);
         }
     };
@@ -1376,7 +1387,19 @@ const DiseaseDetection: React.FC = () => {
                                 {usingCamera && <button type="button" onClick={captureFromCamera} className="px-3 py-2 bg-slate-200 dark:bg-slate-700 rounded-md">Capture</button>}
                             </div>
                             {usingCamera && <div className="mt-3">
-                                <video ref={videoRef} autoPlay playsInline muted className="w-full rounded-lg border" style={{ maxHeight: 360 }} />
+                                <video 
+                                    ref={videoRef} 
+                                    autoPlay 
+                                    playsInline 
+                                    muted 
+                                    className="w-full rounded-lg border" 
+                                    style={{ maxHeight: 360 }}
+                                    onLoadedMetadata={() => {
+                                        if (videoRef.current) {
+                                            videoRef.current.play().catch(console.error);
+                                        }
+                                    }}
+                                />
                             </div>}
                         </div>
                         {imagePreview && <img src={imagePreview} alt="Crop preview" className="mt-4 rounded-lg max-h-60 w-auto mx-auto" />}
@@ -1923,7 +1946,7 @@ const ProfilePage: React.FC = () => {
 };
 
 // --- MAIN APP COMPONENT ---
-export default function App() {
+function App() {
     // Protect Material Symbols icon ligatures from being translated by third-party translators
     useEffect(() => {
         // Ensure Material Symbols font is loaded so restored text renders as icons
@@ -2004,3 +2027,6 @@ export default function App() {
     </ThemeProvider>
   );
 }
+
+export default App;
+export { useTheme, useLanguage, useActivity, useChat, useProfile };
