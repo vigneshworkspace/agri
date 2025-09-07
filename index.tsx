@@ -1,7 +1,7 @@
 
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import { BrowserRouter } from 'react-router-dom';
+import { HashRouter } from 'react-router-dom';
 import App from './App';
 import { ClerkProvider } from '@clerk/clerk-react';
 
@@ -24,19 +24,18 @@ if (PUBLISHABLE_KEY) {
   root.render(
     <React.StrictMode>
       <ClerkProvider publishableKey={PUBLISHABLE_KEY}>
-        <BrowserRouter>
+        <HashRouter>
           <App />
-        </BrowserRouter>
+        </HashRouter>
       </ClerkProvider>
     </React.StrictMode>
   );
 } else {
-  // Fallback rendering without Clerk for demo purposes
   root.render(
     <React.StrictMode>
-      <BrowserRouter>
+      <HashRouter>
         <App />
-      </BrowserRouter>
+      </HashRouter>
     </React.StrictMode>
   );
 }

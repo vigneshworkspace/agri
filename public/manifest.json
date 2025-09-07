@@ -1,0 +1,16 @@
+{
+  "name": "agriassist-pro",
+  "short_name": "AgriAssist",
+  "description": "AI-powered agricultural assistant",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f9fbf8",
+  "theme_color": "#4cdf20",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
+    }
+  ]
+}
