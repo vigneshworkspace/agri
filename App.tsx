@@ -4,16 +4,13 @@ import { Routes, Route, Link, useLocation, Navigate, useNavigate, Outlet } from 
 import { SignedIn, SignedOut, RedirectToSignIn, useClerk, SignIn, useUser } from '@clerk/clerk-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { marked } from 'marked';
+
 import LandingPage from './LandingPage';
 import type { ChatMessage, DiseaseAnalysisResult, YieldPredictionParams, YieldPredictionResult, RecentActivity, UserProfile, MarketAnalysisResult } from './types';
 import * as GeminiService from './services/geminiService';
 
-// --- ICONS ---
-const IconBot = ({ className = "w-6 h-6" }) => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={className}><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zM8.5 12.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm3.5 4c-1.38 0-2.5-1.12-2.5-2.5h5c0 1.38-1.12 2.5-2.5 2.5zm3.5-4c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z" /></svg>;
-const IconLeaf = ({ className = "w-6 h-6" }) => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={className}><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zM17.5 13c-.83 0-1.5-.67-1.5-1.5V11h-2v.5c0 .83-.67 1.5-1.5 1.5S11 12.33 11 11.5V11H9v.5c0 .83-.67 1.5-1.5 1.5S6 12.33 6 11.5V10c0-2.21 1.79-4 4-4h4c2.21 0 4 1.79 4 4v1.5c0 .83-.67 1.5-1.5 1.5z" /></svg>;
-const IconChart = ({ className = "w-6 h-6" }) => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={className}><path d="M5 9.2h3V19H5zM10.6 5h2.8v14h-2.8zm5.6 8H19v6h-2.8z" /></svg>;
-const IconDroplet = ({ className = "w-6 h-6" }) => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={className}><path d="M12 2C8.13 2 5 5.13 5 9c0 3.39 3.4 7.64 6.15 10.39.29.29.77.29 1.06 0C15.6 16.64 19 12.39 19 9c0-3.87-3.13-7-7-7zm0 11.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" /></svg>;
-const IconDashboard = ({ className = "w-6 h-6" }) => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={className}><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z" /></svg>;
+import { IconBot, IconLeaf, IconChart, IconDroplet, IconDashboard } from './src/components/Icons';
+
 const IconSend = ({ className = "w-6 h-6" }) => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={className}><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" /></svg>;
 const IconClear = ({ className = "w-6 h-6" }) => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}><path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" /></svg>;
 const IconUpload = ({ className = "w-6 h-6" }) => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={className}><path d="M9 16h6v-6h4l-7-7-7 7h4v6zm-4 2h14v2H5v-2z" /></svg>;
@@ -43,48 +40,27 @@ interface ThemeContextType { theme: Theme; toggleTheme: () => void; }
 const ThemeContext = createContext<ThemeContextType | null>(null);
 
 const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const [theme, setTheme] = useState<Theme>(() => {
-        // Initialize theme from localStorage to prevent flicker on load
-        try {
-            const savedTheme = localStorage.getItem('agri_theme');
-            if (savedTheme === 'light' || savedTheme === 'dark') {
-                return savedTheme;
-            }
-        } catch (error) {
-            console.warn('Could not read theme from localStorage.', error);
-        }
-        // Fallback to system preference
-        return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-    });
+    // Force light-only mode
+    const [theme, setTheme] = useState<Theme>('light');
 
     useEffect(() => {
-        const root = window.document.documentElement;
-        const body = document.body;
-        
-        // Explicitly set the correct class on the <html> element
-        if (theme === 'dark') {
-            root.classList.add('dark');
-            root.classList.remove('light');
-            body.style.backgroundColor = '#0f172a'; // slate-900
-            body.style.color = '#f1f5f9'; // slate-100
-        } else {
-            root.classList.add('light');
-            root.classList.remove('dark');
-            body.style.backgroundColor = '#f8fafc'; // slate-50
-            body.style.color = '#1e293b'; // slate-800
-        }
+    // Always apply light-mode class and styles
+    const root = window.document.documentElement;
+    const body = document.body;
+    root.classList.add('light');
+    root.classList.remove('dark');
+    body.style.backgroundColor = '#ffffff';
+    body.style.color = '#111827';
+    body.style.fontFamily = 'Inter, system-ui, -apple-system, sans-serif';
 
-        // Persist the theme choice in localStorage
-        try {
-            localStorage.setItem('agri_theme', theme);
-        } catch (error) {
-            console.warn('Could not save theme to localStorage.', error);
-        }
+    // Persist a light theme marker for compatibility
+    try { localStorage.setItem('agri_theme', 'light'); } catch (error) { /* noop */ }
     }, [theme]); // Re-run this effect whenever the theme state changes
 
     // Memoize the toggle function so it doesn't change on every render
+    // No-op toggle in light-only mode
     const toggleTheme = useCallback(() => {
-        setTheme(prev => (prev === 'light' ? 'dark' : 'light'));
+        /* intentionally no-op */
     }, []);
 
     // Memoize the context value to prevent unnecessary re-renders of consumer components
@@ -751,23 +727,23 @@ const useProfile = () => useContext(ProfileContext)!;
 
 // --- UI COMPONENTS ---
 const Card: React.FC<{ children: React.ReactNode, className?: string, onClick?: (e: React.MouseEvent<HTMLDivElement>) => void }> = ({ children, className, onClick }) => (
-    <div onClick={onClick} className={`bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border border-slate-200/50 dark:border-slate-700/50 rounded-lg p-6 shadow-lg hover:shadow-xl transition-all duration-300 ${className}`}>
+    <div onClick={onClick} className={`bg-white/95 dark:bg-slate-800/95 backdrop-blur-sm border border-slate-200/60 dark:border-slate-700/60 rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 text-gray-900 dark:text-gray-50 ${className}`}>
         {children}
     </div>
 );
 const Button: React.FC<{ children: React.ReactNode, onClick?: () => void, className?: string, type?: "button" | "submit" | "reset", disabled?: boolean }> = ({ children, onClick, className, type = "button", disabled }) => (
-    <button type={type} onClick={onClick} disabled={disabled} className={`bg-emerald-600 dark:bg-emerald-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-emerald-500 dark:hover:bg-emerald-400 active:scale-95 transition-all duration-200 flex items-center justify-center gap-2 ${className} disabled:bg-slate-300 dark:disabled:bg-slate-600 disabled:cursor-not-allowed disabled:active:scale-100`}>
+    <button type={type} onClick={onClick} disabled={disabled} className={`bg-emerald-600 dark:bg-emerald-500 text-white font-semibold py-2.5 px-5 rounded-lg hover:bg-emerald-500 dark:hover:bg-emerald-400 active:scale-95 transition-all duration-200 flex items-center justify-center gap-2 shadow-sm hover:shadow-md ${className} disabled:bg-slate-300 dark:disabled:bg-slate-600 disabled:cursor-not-allowed disabled:active:scale-100`}>
         {children}
     </button>
 );
 const ToolHeader: React.FC<{ icon: React.ReactNode, title: string, subtitle: string, children?: React.ReactNode }> = ({ icon, title, subtitle, children }) => (
     <div className="mb-8 flex justify-between items-start">
         <div>
-                <div className="flex items-center gap-4 mb-2">
-                <div className="text-emerald-400">{icon}</div>
-                <h1 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-white">{title}</h1>
+                <div className="flex items-center gap-4 mb-3">
+                <div className="text-emerald-500 dark:text-[#4ADE80]">{icon}</div>
+                <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-[#E0E0E0] tracking-tight">{title}</h1>
             </div>
-            <p className="text-slate-500 dark:text-slate-400">{subtitle}</p>
+            <p className="text-gray-600 dark:text-[#E0E0E0] text-lg">{subtitle}</p>
         </div>
         <div>{children}</div>
     </div>
@@ -775,7 +751,7 @@ const ToolHeader: React.FC<{ icon: React.ReactNode, title: string, subtitle: str
 const ThemeToggle: React.FC<{ className?: string }> = ({ className }) => {
     const { theme, toggleTheme } = useTheme();
     return (
-        <button onClick={toggleTheme} className={`p-2 rounded-full transition-colors duration-300 ${className} text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-800`} aria-label="Toggle theme">
+        <button onClick={toggleTheme} className={`p-2 rounded-lg transition-colors duration-300 ${className} text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-700 hover:text-gray-900 dark:hover:text-gray-200 border border-gray-200 dark:border-slate-600 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm`} aria-label="Toggle theme">
             {theme === 'light' ? <IconMoon className="w-5 h-5" /> : <IconSun className="w-5 h-5" />}
         </button>
     );
@@ -846,7 +822,7 @@ const LanguageToggle: React.FC<{ className?: string }> = ({ className }) => {
         <div className={`relative ${className}`}>
             <button 
                 onClick={() => setIsOpen(!isOpen)}
-                className="p-2 rounded-lg bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm border border-slate-200/50 dark:border-slate-700/50 shadow-sm transition-all duration-300 text-black dark:text-black hover:bg-white dark:hover:bg-slate-800 hover:shadow-md flex items-center gap-2"
+                className="p-2 rounded-lg bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm border border-gray-200 dark:border-slate-600 shadow-sm transition-all duration-300 text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-slate-700 hover:shadow-md flex items-center gap-2 font-medium"
                 aria-label="Change language"
                 title={t('action.selectLanguage')}
             >
@@ -862,15 +838,15 @@ const LanguageToggle: React.FC<{ className?: string }> = ({ className }) => {
                         onClick={() => setIsOpen(false)}
                     />
                     {/* Dropdown */}
-                    <div className="absolute right-0 top-full mt-2 z-50 bg-white border border-slate-200 rounded-lg shadow-xl py-2 min-w-[180px] backdrop-blur-sm">
+                    <div className="absolute right-0 top-full mt-2 z-50 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg shadow-xl py-2 min-w-[180px] backdrop-blur-sm">
                         {languages.map((lang) => (
                             <button
                                 key={lang.code}
                                 onClick={() => handleLanguageChange(lang.code as Language)}
-                                className={`w-full px-4 py-2 text-left flex items-center gap-3 hover:bg-slate-100 transition-colors duration-200 ${
+                                className={`w-full px-4 py-3 text-left flex items-center gap-3 hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors duration-200 font-medium ${
                                     language === lang.code 
-                                        ? 'bg-emerald-50 text-black' 
-                                        : 'text-black'
+                                        ? 'bg-emerald-50 dark:bg-emerald-900/50 text-emerald-700 dark:text-emerald-300' 
+                                        : 'text-gray-900 dark:text-gray-100'
                                 }`}
                             >
                                 <span className="text-lg">{lang.flag}</span>
@@ -980,11 +956,11 @@ const ToolsPage: React.FC = () => {
     const allToolsForMobile = [...tools, profileTool];
 
     return (
-        <div className="tools-area flex flex-col md:flex-row h-screen bg-transparent overflow-hidden">
-            <aside className="hidden md:flex bg-white/80 dark:bg-slate-950/50 backdrop-blur-md border-b md:border-b-0 md:border-r border-slate-200 dark:border-slate-800 md:w-64 flex-shrink-0 flex flex-col">
+        <div className="tools-area flex flex-col md:flex-row h-screen bg-gray-50 dark:bg-[#121212] overflow-hidden">
+            <aside className="hidden md:flex bg-white/95 dark:bg-[#1F1F1F] backdrop-blur-md border-b md:border-b-0 md:border-r border-gray-200 dark:border-[#4F4F4F] md:w-64 flex-shrink-0 flex flex-col shadow-sm">
                 <div className="p-4 hidden md:block">
-                    <Link to="/" className="text-2xl font-bold flex items-center gap-2 text-slate-900 dark:text-white">
-                        <IconLeaf className="text-emerald-400 w-8 h-8" />
+                    <Link to="/" className="text-2xl font-bold flex items-center gap-2 text-gray-900 dark:text-[#E0E0E0] tracking-tight">
+                        <IconLeaf className="text-emerald-500 dark:text-[#4ADE80] w-8 h-8" />
                         <span>{t('app.name')}</span>
                     </Link>
                 </div>
@@ -994,7 +970,7 @@ const ToolsPage: React.FC = () => {
                         <ul>
                             {tools.map(tool => (
                                 <li key={tool.name}>
-                                    <Link to={tool.path} className={`flex items-center gap-3 py-3 px-4 rounded-lg mb-2 transition-colors duration-200 ${location.pathname.startsWith(tool.path) ? 'bg-emerald-600 text-white font-semibold' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800'}`}>
+                                    <Link to={tool.path} className={`flex items-center gap-3 py-3 px-4 rounded-lg mb-2 transition-colors duration-200 font-medium ${location.pathname.startsWith(tool.path) ? 'bg-[#4DB6AC] text-white font-semibold shadow-sm' : 'text-gray-700 dark:text-[#E0E0E0] hover:bg-gray-100 dark:hover:bg-[#333333] hover:text-gray-900 dark:hover:text-[#4ADE80]'}`}>
                                         {tool.icon}
                                         {tool.name}
                                     </Link>
@@ -1013,7 +989,7 @@ const ToolsPage: React.FC = () => {
                     <nav className="hidden md:block p-4">
                          <ul>
                             <li>
-                                <Link to={profileTool.path} className={`flex items-center gap-3 py-3 px-4 rounded-lg mb-2 transition-colors duration-200 ${location.pathname.startsWith(profileTool.path) ? 'bg-emerald-600 text-white font-semibold' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800'}`}>
+                                <Link to={profileTool.path} className={`flex items-center gap-3 py-3 px-4 rounded-lg mb-2 transition-colors duration-200 font-medium ${location.pathname.startsWith(profileTool.path) ? 'bg-[#4DB6AC] text-white font-semibold shadow-sm' : 'text-gray-700 dark:text-[#E0E0E0] hover:bg-gray-100 dark:hover:bg-[#333333] hover:text-gray-900 dark:hover:text-[#4ADE80]'}`}>
                                     {profileTool.icon}
                                     {t('nav.profile')}
                                 </Link>
@@ -1022,28 +998,28 @@ const ToolsPage: React.FC = () => {
                         {/* Language moved to top-right; keep sidebar clean to avoid duplicate widgets */}
                     </nav>
                 </div>
-                <div className="p-4 border-t border-slate-200 dark:border-slate-800 flex justify-between items-center">
-                    <button onClick={() => clerk.signOut()} className="flex items-center gap-3 py-2 px-3 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-red-500/10 hover:text-red-500 dark:hover:bg-red-800/50 dark:hover:text-red-300 transition-colors duration-200">
+                <div className="p-4 border-t border-gray-200 dark:border-[#4F4F4F] flex justify-between items-center">
+                    <button onClick={() => clerk.signOut()} className="flex items-center gap-3 py-2 px-3 rounded-lg text-gray-600 dark:text-[#E0E0E0] hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-900/20 dark:hover:text-red-400 transition-colors duration-200 font-medium">
                         <IconLogout className="w-5 h-5"/>
                         <span className="text-sm font-medium hidden md:inline">{t('nav.logout')}</span>
                     </button>
                     <div className="flex items-center gap-2">
-                        <ThemeToggle />
+                        {/* Light-only mode: theme toggle removed */}
                     </div>
                 </div>
             </aside>
 
             {/* Mobile top header: visible only on small screens */}
-            <div className="md:hidden fixed top-0 left-0 right-0 z-50 bg-white/90 dark:bg-slate-950/90 backdrop-blur-sm border-b border-slate-200 dark:border-slate-800">
+            <div className="md:hidden fixed top-0 left-0 right-0 z-50 bg-white/95 dark:bg-[#1F1F1F] backdrop-blur-sm border-b border-gray-200 dark:border-[#4F4F4F] shadow-sm">
                 <div className="flex items-center justify-between px-4 py-3">
-                    <Link to="/" className="text-xl font-bold flex items-center gap-2 text-slate-900 dark:text-white">
-                        <span className="material-symbols-outlined text-2xl text-[#4cdf20] notranslate" translate="no">eco</span>
+                    <Link to="/" className="text-xl font-bold flex items-center gap-2 text-gray-900 dark:text-[#E0E0E0] tracking-tight">
+                        <span className="material-symbols-outlined text-2xl text-emerald-500 dark:text-[#4ADE80] notranslate" translate="no">eco</span>
                         <span>{t('app.name')}</span>
                     </Link>
                     <div className="flex items-center gap-2">
                         <LanguageToggle />
-                        <ThemeToggle />
-                        <button onClick={() => clerk.signOut()} className="p-2 rounded-full text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors">
+                        {/* Theme toggle hidden in light-only build */}
+                        <button onClick={() => clerk.signOut()} className="p-2 rounded-full text-gray-600 hover:bg-gray-100 transition-colors">
                             <span className="material-symbols-outlined text-xl notranslate" translate="no">logout</span>
                         </button>
                     </div>
@@ -1051,13 +1027,13 @@ const ToolsPage: React.FC = () => {
             </div>
 
             {/* Mobile bottom nav: visible only on small screens (fixed) */}
-            <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/90 dark:bg-slate-950/80 backdrop-blur-sm border-t border-slate-200 dark:border-slate-800">
+            <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/95 dark:bg-[#1F1F1F] backdrop-blur-sm border-t border-gray-200 dark:border-[#4F4F4F] shadow-lg">
                 <div className="flex justify-around items-center gap-2 overflow-x-auto px-2 py-2 max-w-full">
                     {allToolsForMobile.map(tool => (
                         <Link
                             key={tool.name}
                             to={tool.path}
-                            className={`flex-shrink-0 flex flex-col items-center justify-center w-14 h-14 rounded-full p-1 transition-colors duration-200 ${location.pathname.startsWith(tool.path) ? 'bg-emerald-600 text-white shadow-lg' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800'}`}
+                            className={`flex-shrink-0 flex flex-col items-center justify-center w-14 h-14 rounded-xl p-1 transition-colors duration-200 ${location.pathname.startsWith(tool.path) ? 'bg-[#4DB6AC] text-white shadow-md' : 'text-gray-600 dark:text-[#E0E0E0] hover:bg-gray-100 dark:hover:bg-[#333333]'}`}
                             title={tool.name}
                         >
                             <div className="w-6 h-6 flex items-center justify-center">{tool.icon}</div>
@@ -1067,7 +1043,7 @@ const ToolsPage: React.FC = () => {
                     ))}
                 </div>
             </div>
-            <main className="flex-1 overflow-y-auto p-4 md:p-8 relative pb-20 md:pb-0 pt-16 md:pt-0">
+            <main className="flex-1 overflow-y-auto p-4 md:p-8 relative pb-20 md:pb-0 pt-20 md:pt-0 bg-gray-50 dark:bg-[#121212]">
                 <Outlet />
             </main>
         </div>
@@ -1132,7 +1108,7 @@ const ChatInterface: React.FC<{ isFullScreen: boolean }> = ({ isFullScreen }) =>
             {messages.map((msg, index) => (
                 <div key={index} className={`flex gap-3 ${msg.role === 'user' ? 'justify-end' : ''}`}>
                     {msg.role === 'model' && <div className="w-8 h-8 rounded-full bg-emerald-600 flex-shrink-0 flex items-center justify-center"><IconBot className="w-5 h-5 text-white" /></div>}
-                    <div className={`chat-bubble max-w-xl p-3 rounded-lg ${msg.role === 'user' ? 'bg-emerald-600 dark:bg-emerald-700 text-black dark:text-white' : 'bg-slate-200 dark:bg-slate-700 text-black dark:text-white'}`}>
+                    <div className={`chat-bubble max-w-xl p-4 rounded-xl shadow-sm ${msg.role === 'user' ? 'bg-emerald-600 dark:bg-emerald-600 text-white font-medium' : 'bg-white dark:bg-[#333333] text-gray-900 dark:text-[#E0E0E0] border border-gray-200 dark:border-[#4F4F4F]'}`}>
                          {msg.role === 'user' ? (
                             <p className="whitespace-pre-wrap">{msg.text}</p>
                         ) : (
@@ -1147,10 +1123,10 @@ const ChatInterface: React.FC<{ isFullScreen: boolean }> = ({ isFullScreen }) =>
             {isLoading && messages[messages.length - 1].role === 'user' && (
                  <div className="flex gap-3">
                     <div className="w-8 h-8 rounded-full bg-emerald-600 flex-shrink-0 flex items-center justify-center"><IconBot className="w-5 h-5 text-white" /></div>
-                    <div className={`chat-bubble max-w-xl p-3 rounded-lg bg-slate-200 dark:bg-slate-700 text-black dark:text-white flex items-center gap-2`}>
-                        <div className="w-2 h-2 bg-slate-500 dark:bg-slate-400 rounded-full animate-pulse [animation-delay:-0.3s]"></div>
-                        <div className="w-2 h-2 bg-slate-500 dark:bg-slate-400 rounded-full animate-pulse [animation-delay:-0.15s]"></div>
-                        <div className="w-2 h-2 bg-slate-500 dark:bg-slate-400 rounded-full animate-pulse"></div>
+                    <div className={`chat-bubble max-w-xl p-4 rounded-xl bg-white dark:bg-[#333333] text-gray-900 dark:text-[#E0E0E0] border border-gray-200 dark:border-[#4F4F4F] shadow-sm flex items-center gap-2`}>
+                        <div className="w-2 h-2 bg-gray-400 dark:bg-gray-500 rounded-full animate-pulse [animation-delay:-0.3s]"></div>
+                        <div className="w-2 h-2 bg-gray-400 dark:bg-gray-500 rounded-full animate-pulse [animation-delay:-0.15s]"></div>
+                        <div className="w-2 h-2 bg-gray-400 dark:bg-gray-500 rounded-full animate-pulse"></div>
                     </div>
                 </div>
             )}
@@ -1159,28 +1135,28 @@ const ChatInterface: React.FC<{ isFullScreen: boolean }> = ({ isFullScreen }) =>
     );
 
     const chatInput = (
-         <div className="p-4 border-t border-slate-200 dark:border-slate-700 bg-white/70 dark:bg-slate-800">
+         <div className="p-4 border-t border-gray-200 dark:border-[#4F4F4F] bg-white/95 dark:bg-[#1F1F1F] backdrop-blur-sm">
             <div className="flex gap-2 overflow-x-auto mb-3 pb-2">
                 {suggestionChips.map(s => (
-                    <button key={s} onClick={() => handleSendMessage(undefined, s)} className="flex-shrink-0 bg-slate-200 text-sm text-slate-600 py-1 px-3 rounded-full hover:bg-slate-300 dark:bg-slate-700 dark:text-slate-300 dark:hover:bg-slate-600 transition-colors">
+                    <button key={s} onClick={() => handleSendMessage(undefined, s)} className="flex-shrink-0 bg-gray-100 text-sm text-gray-700 py-2 px-4 rounded-full hover:bg-gray-200 dark:bg-[#333333] dark:text-[#E0E0E0] dark:hover:bg-[#4F4F4F] transition-colors font-medium border border-gray-200 dark:border-[#4F4F4F]">
                         {s}
                     </button>
                 ))}
             </div>
-            <form onSubmit={handleSendMessage} className="flex items-center gap-4">
-                <input type="text" value={input} onChange={(e) => setInput(e.target.value)} placeholder={t('ai.placeholder')} className="flex-1 bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg p-3 focus:ring-2 focus:ring-emerald-500 focus:outline-none" disabled={isLoading} />
-                <Button onClick={clearMessages} className="p-3 bg-slate-500 hover:bg-slate-600" disabled={isLoading}>
-                    <IconClear className="w-6 h-6"/>
+            <form onSubmit={handleSendMessage} className="flex items-center gap-3">
+                <input type="text" value={input} onChange={(e) => setInput(e.target.value)} placeholder={t('ai.placeholder')} className="flex-1 bg-white dark:bg-[#333333] border border-gray-300 dark:border-[#4F4F4F] rounded-lg p-3 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 focus:outline-none text-gray-900 dark:text-[#E0E0E0] font-medium" disabled={isLoading} />
+                <Button onClick={clearMessages} className="p-3 bg-gray-500 hover:bg-gray-600 dark:bg-gray-600 dark:hover:bg-gray-500" disabled={isLoading}>
+                    <IconClear className="w-5 h-5"/>
                 </Button>
-                <Button type="submit" className="p-3" disabled={isLoading}><IconSend className="w-6 h-6"/></Button>
+                <Button type="submit" className="p-3 bg-emerald-600 dark:bg-[#00897B] hover:bg-emerald-500 dark:hover:bg-[#00695C]" disabled={isLoading}><IconSend className="w-5 h-5"/></Button>
             </form>
         </div>
     );
 
     if (isFullScreen) {
-        return <div className="h-full flex flex-col bg-white dark:bg-slate-800">{chatBody}{chatInput}</div>;
+        return <div className="h-full flex flex-col bg-gray-50 dark:bg-[#121212]">{chatBody}{chatInput}</div>;
     }
-    return <div className="h-full flex flex-col bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg overflow-hidden">{chatBody}{chatInput}</div>;
+    return <div className="h-full flex flex-col bg-white/95 dark:bg-[#1F1F1F] border border-gray-200 dark:border-[#4F4F4F] rounded-xl overflow-hidden shadow-sm backdrop-blur-sm">{chatBody}{chatInput}</div>;
 };
 
 const AIAssistant: React.FC = () => {
@@ -1246,14 +1222,14 @@ const AIAssistantFullScreen: React.FC = () => {
 const DiseaseDetection: React.FC = () => {
     const [imageFile, setImageFile] = useState<File | null>(null);
     const [imagePreview, setImagePreview] = useState<string | null>(null);
-    const [usingCamera, setUsingCamera] = useState(false);
+    const [showCamera, setShowCamera] = useState(false);
     const [stream, setStream] = useState<MediaStream | null>(null);
-    const videoRef = useRef<HTMLVideoElement | null>(null);
     const [result, setResult] = useState<DiseaseAnalysisResult | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const { addActivity } = useActivity();
     const { user } = useUser();
+    const videoRef = useRef<HTMLVideoElement>(null);
 
     const fileToBase64 = (file: File): Promise<string> => new Promise((resolve, reject) => {
         const reader = new FileReader();
@@ -1274,55 +1250,60 @@ const DiseaseDetection: React.FC = () => {
     };
 
     const startCamera = async () => {
-        if (usingCamera) return;
         try {
-            const s = await navigator.mediaDevices.getUserMedia({ 
-                video: { 
-                    facingMode: { ideal: 'environment' },
-                    width: { ideal: 1280 },
-                    height: { ideal: 720 }
-                }, 
-                audio: false 
+            const mediaStream = await navigator.mediaDevices.getUserMedia({
+                video: { facingMode: 'environment' },
+                audio: false
             });
-            setStream(s);
-            setUsingCamera(true);
+            setStream(mediaStream);
             if (videoRef.current) {
-                videoRef.current.srcObject = s;
-                videoRef.current.play();
+                videoRef.current.srcObject = mediaStream;
             }
         } catch (err) {
-            console.error('Camera error', err);
-            setError('Camera access denied or not available');
-            setUsingCamera(false);
+            setError('Camera access denied');
         }
     };
 
     const stopCamera = () => {
         if (stream) {
-            stream.getTracks().forEach(t => t.stop());
+            stream.getTracks().forEach(track => track.stop());
             setStream(null);
         }
-        setUsingCamera(false);
+        setShowCamera(false);
     };
 
-    const captureFromCamera = async () => {
-        if (!videoRef.current) return;
-        const video = videoRef.current;
-        const canvas = document.createElement('canvas');
-        canvas.width = video.videoWidth || 1280;
-        canvas.height = video.videoHeight || 720;
-        const ctx = canvas.getContext('2d');
-        if (!ctx) return;
-        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-        const blob: Blob | null = await new Promise(resolve => canvas.toBlob(b => resolve(b), 'image/jpeg', 0.92));
-        if (blob) {
-            const file = new File([blob], `capture-${Date.now()}.jpg`, { type: 'image/jpeg' });
-            setImageFile(file);
-            setImagePreview(URL.createObjectURL(file));
-            // stop camera after capture for privacy
-            stopCamera();
+    const capturePhoto = () => {
+        if (videoRef.current) {
+            const canvas = document.createElement('canvas');
+            canvas.width = videoRef.current.videoWidth;
+            canvas.height = videoRef.current.videoHeight;
+            const ctx = canvas.getContext('2d');
+            if (ctx) {
+                ctx.drawImage(videoRef.current, 0, 0);
+                canvas.toBlob((blob) => {
+                    if (blob) {
+                        const file = new File([blob], `photo-${Date.now()}.jpg`, { type: 'image/jpeg' });
+                        setImageFile(file);
+                        setImagePreview(URL.createObjectURL(file));
+                        setResult(null);
+                        setError(null);
+                        stopCamera();
+                    }
+                }, 'image/jpeg', 0.9);
+            }
         }
     };
+
+    useEffect(() => {
+        if (showCamera) {
+            startCamera();
+        }
+        return () => {
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+            }
+        };
+    }, [showCamera]);
     
     const handleAnalyze = async () => {
         if (!imageFile) { setError("Please upload an image first."); return; }
@@ -1381,26 +1362,43 @@ const DiseaseDetection: React.FC = () => {
                     <div className="space-y-4">
                         <div>
                             <label htmlFor="imageUpload" className="block mb-2 text-sm font-medium text-slate-600 dark:text-slate-300">Upload Image (Max 10MB)</label>
-                            <input id="imageUpload" type="file" accept="image/jpeg, image/png" onChange={handleFileChange} className="block w-full text-sm text-slate-500 dark:text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-emerald-600 file:text-white hover:file:bg-emerald-500" />
+                            <input id="imageUpload" type="file" accept="image/jpeg, image/png" onChange={handleFileChange} className="block w-full text-sm text-gray-600 dark:text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-emerald-600 file:text-white hover:file:bg-emerald-500 file:shadow-sm border border-gray-300 dark:border-slate-600 rounded-lg p-2 bg-white dark:bg-slate-800" />
                             <div className="mt-3 flex items-center gap-2">
-                                <button type="button" onClick={usingCamera ? stopCamera : startCamera} className="px-3 py-2 bg-emerald-600 text-white rounded-md">{usingCamera ? 'Stop Camera' : 'Use Camera'}</button>
-                                {usingCamera && <button type="button" onClick={captureFromCamera} className="px-3 py-2 bg-slate-200 dark:bg-slate-700 rounded-md">Capture</button>}
+                                <button 
+                                    type="button" 
+                                    onClick={() => setShowCamera(true)} 
+                                    className="px-3 py-2 bg-emerald-600 text-white rounded-md"
+                                >
+                                    Use Camera
+                                </button>
                             </div>
-                            {usingCamera && <div className="mt-3">
-                                <video 
-                                    ref={videoRef} 
-                                    autoPlay 
-                                    playsInline 
-                                    muted 
-                                    className="w-full rounded-lg border" 
-                                    style={{ maxHeight: 360 }}
-                                    onLoadedMetadata={() => {
-                                        if (videoRef.current) {
-                                            videoRef.current.play().catch(console.error);
-                                        }
-                                    }}
-                                />
-                            </div>}
+                            {showCamera && (
+                                <div className="mt-3 relative">
+                                    <div className="w-full h-64 bg-black rounded-lg overflow-hidden">
+                                        <video 
+                                            ref={videoRef}
+                                            autoPlay
+                                            playsInline
+                                            muted
+                                            className="w-full h-full object-cover"
+                                        />
+                                    </div>
+                                    <div className="flex gap-2 mt-2">
+                                        <button 
+                                            onClick={capturePhoto}
+                                            className="px-4 py-2 bg-emerald-600 text-white rounded-md"
+                                        >
+                                            Capture
+                                        </button>
+                                        <button 
+                                            onClick={stopCamera}
+                                            className="px-4 py-2 bg-gray-500 text-white rounded-md"
+                                        >
+                                            Cancel
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
                         </div>
                         {imagePreview && <img src={imagePreview} alt="Crop preview" className="mt-4 rounded-lg max-h-60 w-auto mx-auto" />}
                         <Button onClick={handleAnalyze} disabled={isLoading || !imageFile} className="w-full mt-4">
@@ -1412,7 +1410,7 @@ const DiseaseDetection: React.FC = () => {
                 <Card>
                     <h2 className="text-xl font-bold mb-4">2. Analysis Results</h2>
                     {isLoading && <div className="text-center p-8">Loading analysis...</div>}
-                    {!isLoading && !result && <div className="text-center p-8 text-slate-400 dark:text-slate-500">Results will appear here.</div>}
+                    {!isLoading && !result && <div className="text-center p-8 text-slate-500 dark:text-slate-200">Results will appear here.</div>}
                     {result && (
                         <div className="space-y-4">
                             <h3 className="text-2xl font-bold text-emerald-500 dark:text-emerald-400">{result.disease}</h3>
@@ -1514,14 +1512,14 @@ const YieldPrediction: React.FC = () => {
                     <h2 className="text-xl font-bold mb-4">Prediction Parameters</h2>
                     <div className="space-y-4">
                         <FormField label="Crop Type" name="crop" value={crop} onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setCrop(e.target.value)} type="select" options={["corn", "wheat", "rice", "soybean", "potato"]} />
-                         <div className="text-sm p-3 bg-slate-100 dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700">
-                           <p className="font-semibold">Using data from your profile:</p>
-                           <ul className="list-disc list-inside text-slate-600 dark:text-slate-400">
+                         <div className="text-sm p-4 bg-gray-50 dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-slate-700 shadow-sm">
+                           <p className="font-semibold text-gray-900 dark:text-gray-100 mb-2">Using data from your profile:</p>
+                           <ul className="list-disc list-inside text-gray-700 dark:text-gray-300 space-y-1">
                                <li>Location: {profile.location || "Not set"}</li>
                                <li>Land Area: {profile.acres ? `${profile.acres} acres` : "Not set"}</li>
                                <li>Soil Type: {profile.soilType ? profile.soilType.charAt(0).toUpperCase() + profile.soilType.slice(1) : "Not set"}</li>
                            </ul>
-                           <button onClick={() => navigate('/tools/profile')} className="text-emerald-600 dark:text-emerald-400 hover:underline mt-2 text-xs font-bold">Update Profile</button>
+                           <button onClick={() => navigate('/tools/profile')} className="text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 hover:underline mt-3 text-sm font-semibold">Update Profile</button>
                         </div>
                         <Button onClick={handlePredict} disabled={isLoading} className="w-full mt-4">
                             {isLoading ? 'Calculating...' : <><IconChart /> Predict Yield</>}
@@ -1532,7 +1530,7 @@ const YieldPrediction: React.FC = () => {
                 <Card className="lg:col-span-3">
                     <h2 className="text-xl font-bold mb-4">Prediction Results</h2>
                     {isLoading && <div className="text-center p-8">Generating prediction...</div>}
-                    {!isLoading && !result && <div className="text-center p-8 text-slate-400 dark:text-slate-500">Results will be displayed here.</div>}
+                    {!isLoading && !result && <div className="text-center p-8 text-slate-500 dark:text-slate-200">Results will be displayed here.</div>}
                     {result && (
                         <div>
                             <div className="h-64 w-full mb-6">
@@ -1564,13 +1562,13 @@ const YieldPrediction: React.FC = () => {
 
 const FormField: React.FC<{label:string, name:string, value:any, onChange:any, type:string, options?:string[]}> = ({label, name, value, onChange, type, options}) => (
     <div>
-        <label htmlFor={name} className="block mb-2 text-sm font-medium text-slate-600 dark:text-slate-300">{label}</label>
+        <label htmlFor={name} className="block mb-2 text-sm font-semibold text-gray-700 dark:text-gray-300">{label}</label>
         {type === 'select' ? (
-            <select id={name} name={name} value={value} onChange={onChange} className="w-full bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg p-3 focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+            <select id={name} name={name} value={value} onChange={onChange} className="w-full bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-600 rounded-lg p-3 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 focus:outline-none text-gray-900 dark:text-gray-100 font-medium shadow-sm">
                 {options?.map(opt => <option key={opt} value={opt}>{opt.charAt(0).toUpperCase() + opt.slice(1)}</option>)}
             </select>
         ) : (
-            <input id={name} name={name} type={type} value={value} onChange={onChange} className="w-full bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg p-3 focus:ring-2 focus:ring-emerald-500 focus:outline-none" />
+            <input id={name} name={name} type={type} value={value} onChange={onChange} className="w-full bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-600 rounded-lg p-3 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 focus:outline-none text-gray-900 dark:text-gray-100 font-medium shadow-sm" />
         )}
     </div>
 );
@@ -1661,7 +1659,7 @@ const SmartWatering: React.FC = () => {
                 <Card>
                     <h2 className="text-xl font-bold mb-4">Real-time Monitoring</h2>
                     <div className="text-center my-8">
-                        <p className="text-slate-500 dark:text-slate-400">Current Soil Moisture</p>
+                        <p className="text-slate-600 dark:text-slate-100">Current Soil Moisture</p>
                         <p className={`text-7xl font-bold ${moistureColor}`}>{moisture.toFixed(1)}%</p>
                     </div>
                     <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-4 mb-8">
@@ -1794,7 +1792,7 @@ const MarketAdvisor: React.FC = () => {
                 <Card className="lg:col-span-3">
                     <h2 className="text-xl font-bold mb-4">Market Analysis</h2>
                     {isLoading && <div className="text-center p-8">Searching for the latest market data...</div>}
-                    {!isLoading && !result && <div className="text-center p-8 text-slate-400 dark:text-slate-500">Analysis results will appear here.</div>}
+                    {!isLoading && !result && <div className="text-center p-8 text-slate-500 dark:text-slate-200">Analysis results will appear here.</div>}
                     {result && (
                         <div>
                             <div
@@ -1854,7 +1852,7 @@ const UserDashboard: React.FC = () => {
                                 <p className="text-xs text-slate-500 dark:text-slate-400">{activity.timestamp}</p>
                             </div>
                         </div>
-                    )) : <p className="text-slate-500 dark:text-slate-400 text-center py-8">No recent activity. Try using a tool!</p>}
+                    )) : <p className="text-slate-600 dark:text-slate-100 text-center py-8">No recent activity. Try using a tool!</p>}
                 </div>
             </Card>
         </div>
@@ -1881,7 +1879,7 @@ const StatCard: React.FC<{title: string, value: number}> = ({ title, value }) =>
     const animatedValue = useAnimatedCounter(value);
     return (
         <Card className="text-center">
-            <p className="text-slate-500 dark:text-slate-400 text-lg mb-2">{title}</p>
+            <p className="text-slate-600 dark:text-slate-100 text-lg mb-2">{title}</p>
             <p className="text-5xl font-bold text-emerald-500 dark:text-emerald-400">{animatedValue}</p>
         </Card>
     );
@@ -1927,7 +1925,7 @@ const ProfilePage: React.FC = () => {
                             value={formData.currentCrops}
                             onChange={handleChange}
                             placeholder="e.g., Corn in Field A, Soybeans in Field B..."
-                            className="w-full bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg p-3 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                            className="w-full bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-600 rounded-lg p-3 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 focus:outline-none text-gray-900 dark:text-gray-100 font-medium shadow-sm"
                         />
                     </div>
                     <div className="flex items-center gap-4">

@@ -32,14 +32,58 @@
     </script>
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <style>
-        /* Mobile-first responsive overrides */
-        @media (max-width: 768px) {
-            #page-translator { 
-                top: 0.5rem; 
-                right: 0.5rem; 
-                padding: 0.125rem 0.25rem; 
-                font-size: 0.75rem;
-            }
+        /* Import Inter font - must be first */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        /* Enhanced font and color scheme */
+        body {
+            font-family: 'Inter', 'Segoe UI', 'Roboto', system-ui, -apple-system, sans-serif;
+            font-weight: 400;
+            line-height: 1.6;
+        }
+        
+        /* DarkDark Theme Colors */
+        .dark {
+            background-color: #121212 !important;
+            color: #E0E0E0 !important;
+        }
+        
+        .dark .chat-bubble {
+            background-color: #333333 !important;
+            color: #E0E0E0 !important;
+        }
+        
+        .dark .tools-area {
+            background-color: #121212 !important;
+            color: #E0E0E0 !important;
+        }
+        
+        .dark .bg-slate-800, .dark .bg-slate-800\/95 {
+            background-color: #1F1F1F !important;
+        }
+        
+        .dark .border-slate-700 {
+            border-color: #4F4F4F !important;
+        }
+        
+        /* Improved button and interactive element styling */
+        button, .btn {
+            font-weight: 600;
+            letter-spacing: 0.025em;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+        
+        /* Better heading typography */
+        h1, h2, h3, h4, h5, h6 {
+            font-weight: 700;
+            letter-spacing: -0.025em;
+            color: #111827;
+        }
+        
+        .dark h1, .dark h2, .dark h3, .dark h4, .dark h5, .dark h6 {
+            color: #E0E0E0;
         }
         
         /* Consistent color scheme overrides */
@@ -47,47 +91,9 @@
             color-scheme: dark;
         }
         
-        /* Prevent text selection on buttons */
-        button, .btn {
-            -webkit-touch-callout: none;
-            -webkit-user-select: none;
-            -khtml-user-select: none;
-            -moz-user-select: none;
-            -ms-user-select: none;
-            user-select: none;
-        }
-        
         /* Smooth scrolling */
         html {
             scroll-behavior: smooth;
-        }
-        
-        /* Position translator and hide Google's elements */
-        #page-translator { 
-            position: fixed; 
-            top: 0.75rem; 
-            right: 0.75rem; 
-            z-index: 9999; 
-            background: rgba(255,255,255,0.95); 
-            backdrop-filter: blur(4px);
-            padding: 0.25rem 0.5rem; 
-            border-radius: 8px; 
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            border: 1px solid rgba(0,0,0,0.05);
-        }
-        
-        .dark #page-translator {
-            background: rgba(30, 41, 59, 0.95);
-            border: 1px solid rgba(255,255,255,0.1);
-        }
-        
-        #page-translator .goog-te-gadget img, 
-        .goog-te-gadget-icon { 
-            display: none !important; 
-        }
-        
-        .notranslate { 
-            translate: no !important; 
         }
         
         /* Mobile touch improvements */
@@ -97,21 +103,9 @@
             }
             
             input, textarea, select {
-                font-size: 16px; /* Prevents zoom on iOS */
+                font-size: 16px;
             }
         }
-    /* Ensure readable text on common light background utilities */
-    /* Chat bubbles should be dark in light mode and light in dark mode */
-    .chat-bubble { color: #000 !important; }
-    .dark .chat-bubble { color: #fff !important; }
-
-    /* Make common Tailwind light background utility classes use readable dark text by default */
-    .bg-slate-50, .bg-slate-100, .bg-slate-200 { color: #000 !important; }
-    /* In dark mode, prefer the inherited/dark text colors */
-    .dark .bg-slate-50, .dark .bg-slate-100, .dark .bg-slate-200 { color: inherit !important; }
-    /* Make utility "text-white" readable in light mode only inside tools pages */
-    :not(.dark) .tools-area .text-white { color: #000 !important; }
-    :not(.dark) .tools-area [class*="text-white"] { color: #000 !important; }
     </style>
 </head>
 <body class="transition-colors duration-300">
