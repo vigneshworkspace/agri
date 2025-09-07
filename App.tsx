@@ -736,14 +736,14 @@ const Button: React.FC<{ children: React.ReactNode, onClick?: () => void, classN
         {children}
     </button>
 );
-const ToolHeader: React.FC<{ icon: React.ReactNode, title: string, subtitle: string, children?: React.ReactNode }> = ({ icon, title, subtitle, children }) => (
+const ToolHeader: React.FC<{ icon: React.ReactNode, title: string, subtitle: string, titleClassName?: string, subtitleClassName?: string, children?: React.ReactNode }> = ({ icon, title, subtitle, titleClassName, subtitleClassName, children }) => (
     <div className="mb-8 flex justify-between items-start">
         <div>
                 <div className="flex items-center gap-4 mb-3">
                 <div className="text-emerald-500 dark:text-[#4ADE80]">{icon}</div>
-                <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-[#E0E0E0] tracking-tight">{title}</h1>
+                <h1 className={`text-2xl md:text-3xl font-bold text-gray-900 dark:text-[#E0E0E0] tracking-tight ${titleClassName || ''}`}>{title}</h1>
             </div>
-            <p className="text-gray-600 dark:text-[#E0E0E0] text-lg">{subtitle}</p>
+            <p className={`text-gray-600 dark:text-[#E0E0E0] text-lg ${subtitleClassName || ''}`}>{subtitle}</p>
         </div>
         <div>{children}</div>
     </div>
@@ -1184,7 +1184,7 @@ const AIAssistant: React.FC = () => {
                     </Card>
                 </div>
             )}
-            <ToolHeader icon={<IconBot className="w-10 h-10" />} title={t('ai.title')} subtitle={t('ai.subtitle')}>
+            <ToolHeader icon={<IconBot className="w-10 h-10" />} title={t('ai.title')} subtitle={t('ai.subtitle')} titleClassName="text-lg md:text-3xl" subtitleClassName="text-sm md:text-lg">
                 <div className="flex items-center gap-3">
                     <LanguageToggle />
                     <Button onClick={() => navigate('/tools/assistant/fullscreen')} className="bg-slate-200 hover:bg-slate-300 text-slate-700 dark:bg-slate-700 dark:hover:bg-slate-600 dark:text-white">
@@ -1203,7 +1203,7 @@ const AIAssistantFullScreen: React.FC = () => {
     return (
         <div className="h-screen flex flex-col bg-slate-100 dark:bg-slate-900">
              <header className="p-4 bg-white/80 dark:bg-slate-950/50 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 flex justify-between items-center">
-                <h1 className="text-xl font-bold flex items-center gap-2"><IconBot/> {t('nav.assistant')}</h1>
+                <h1 className="text-lg md:text-xl font-bold flex items-center gap-2"><IconBot/> {t('nav.assistant')}</h1>
                 <div className="flex items-center gap-3">
                     <LanguageToggle />
                     <Button onClick={() => navigate('/tools/assistant')} className="bg-slate-200 hover:bg-slate-300 text-slate-700 dark:bg-slate-700 dark:hover:bg-slate-600 dark:text-white">

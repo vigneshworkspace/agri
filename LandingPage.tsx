@@ -77,9 +77,9 @@ const Hero: React.FC = () => {
     };
 
     return (
-        <section className="relative flex min-h-[calc(100vh-5rem)] items-center justify-center bg-cover bg-center bg-no-repeat p-4" style={{ backgroundImage: 'linear-gradient(rgba(0, 0, 0, 0.5) 0%, rgba(0, 0, 0, 0.7) 100%), url("https://lh3.googleusercontent.com/aida-public/AB6AXuDsVQJva-QX9jjo53RQmWpPQgw8vvkHf7hVEIeVUrBoW1eGVWxLeTP_lu28_Xbr29O32aOR3MXrK0Tz9J9vL3Wx9GxKi9uGZvHswJKyXAGzGhGb2fktCgOGhA2Me98B3Cefam2yUsPd8oI6p-yh7ZtFFQCWJR1q-DbZypGYSmCtY02dh_h1kM8v8Nsr5xrRy3rRspdVO-HD7L9Y8JHwX7Jd_VPN0lD5mSVBod2ZYMy5KvCEx-DbLpoD73U8-ua5pjhdzvDhA9l0widl")' }}>
+        <section className="relative flex min-h-[calc(100vh-5rem)] items-center justify-center bg-cover bg-center bg-no-repeat p-4" style={{ backgroundImage: `url("/Moon.png")` }}>
             <div className="container mx-auto text-center text-white max-w-4xl">
-                <h1 className="text-5xl font-extrabold leading-tight tracking-[-0.03em] md:text-7xl">Smarter Farming, Sustainable Future.</h1>
+                <h1 className="text-5xl font-extrabold leading-tight tracking-[-0.03em] md:text-7xl text-white">Smarter Farming, Sustainable Future.</h1>
                 <p className="mt-6 max-w-2xl mx-auto text-lg font-light leading-relaxed md:text-xl">
                     Harness the power of AI to optimize your farming operations for greater productivity and sustainability.
                 </p>
