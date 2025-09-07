@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>AgriAssist Pro</title>
     <script>
         // Configure Tailwind to use class-based dark mode so our ThemeProvider can toggle it
@@ -11,54 +11,112 @@
         window.tailwind.config = {
             darkMode: 'class',
             theme: {
-                extend: {}
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#f0fdf4',
+                            100: '#dcfce7',
+                            200: '#bbf7d0',
+                            300: '#86efac',
+                            400: '#4ade80',
+                            500: '#22c55e',
+                            600: '#16a34a',
+                            700: '#15803d',
+                            800: '#166534',
+                            900: '#14532d'
+                        }
+                    }
+                }
             }
         };
     </script>
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-    <!-- Google Translate is loaded and initialized from the React components (LandingPage/LanguageTranslator) -->
-</head>
-<body>
-    <div id="root"></div>
-            <!-- Hidden Google Translate element for our custom language selector -->
-            <div id="page-translator" style="display: none !important;"></div>
-            <style>
-                /* Hide Google Translate widget completely since we have our own interface */
-                #page-translator, .goog-te-gadget, .goog-te-banner-frame, .goog-te-balloon-frame { 
-                    display: none !important; 
-                    visibility: hidden !important;
-                }
-                .goog-te-gadget img, .goog-te-gadget-icon { display: none !important; }
-                .notranslate { translate: no !important; }
-                /* Hide Google's translation bar */
-                .goog-te-banner-frame.skiptranslate { display: none !important; }
-                body { top: 0px !important; }
-            </style>
+    <style>
+        /* Mobile-first responsive overrides */
+        @media (max-width: 768px) {
+            #page-translator { 
+                top: 0.5rem; 
+                right: 0.5rem; 
+                padding: 0.125rem 0.25rem; 
+                font-size: 0.75rem;
+            }
+        }
+        
+        /* Consistent color scheme overrides */
+        .dark {
+            color-scheme: dark;
+        }
+        
+        /* Prevent text selection on buttons */
+        button, .btn {
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -khtml-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+        
+        /* Smooth scrolling */
+        html {
+            scroll-behavior: smooth;
+        }
+        
+        /* Position translator and hide Google's elements */
+        #page-translator { 
+            position: fixed; 
+            top: 0.75rem; 
+            right: 0.75rem; 
+            z-index: 9999; 
+            background: rgba(255,255,255,0.95); 
+            backdrop-filter: blur(4px);
+            padding: 0.25rem 0.5rem; 
+            border-radius: 8px; 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+        
+        .dark #page-translator {
+            background: rgba(30, 41, 59, 0.95);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        #page-translator .goog-te-gadget img, 
+        .goog-te-gadget-icon { 
+            display: none !important; 
+        }
+        
+        .notranslate { 
+            translate: no !important; 
+        }
+        
+        /* Mobile touch improvements */
+        @media (max-width: 768px) {
+            * {
+                -webkit-tap-highlight-color: transparent;
+            }
+            
+            input, textarea, select {
+                font-size: 16px; /* Prevents zoom on iOS */
+            }
+        }
+    /* Ensure readable text on common light background utilities */
+    /* Chat bubbles should be dark in light mode and light in dark mode */
+    .chat-bubble { color: #000 !important; }
+    .dark .chat-bubble { color: #fff !important; }
 
-            <script>
-                function googleTranslateElementInit() {
-                    try {
-                        new google.translate.TranslateElement({
-                            pageLanguage: 'en',
-                            includedLanguages: 'en,es,fr,de,hi,zh-cn',
-                            layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
-                            autoDisplay: false
-                        }, 'page-translator');
-                    } catch (e) {
-                        // ignore if API not loaded or blocked
-                    }
-                }
-                (function loadTranslate(){
-                    if (!document.querySelector('script[src*="translate_a/element.js"]')) {
-                        var s = document.createElement('script');
-                        s.src = 'https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit';
-                        s.async = true;
-                        document.head.appendChild(s);
-                    } else {
-                        setTimeout(function(){ try { googleTranslateElementInit(); } catch(e){} }, 200);
-                    }
-                })();
-            </script>
+    /* Make common Tailwind light background utility classes use readable dark text by default */
+    .bg-slate-50, .bg-slate-100, .bg-slate-200 { color: #000 !important; }
+    /* In dark mode, prefer the inherited/dark text colors */
+    .dark .bg-slate-50, .dark .bg-slate-100, .dark .bg-slate-200 { color: inherit !important; }
+    /* Make utility "text-white" readable in light mode only inside tools pages */
+    :not(.dark) .tools-area .text-white { color: #000 !important; }
+    :not(.dark) .tools-area [class*="text-white"] { color: #000 !important; }
+    </style>
+</head>
+<body class="bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
+    <div id="root"></div>
+    <!-- Google Translate removed: language select hidden to use built-in language toggle -->
     <script type="module" src="/index.tsx"></script>
 </body>
 </html>

@@ -781,16 +781,16 @@ const LanguageToggle: React.FC<{ className?: string }> = ({ className }) => {
     const [isOpen, setIsOpen] = useState(false);
 
     const languages = [
-        { code: 'en', name: 'English', flag: '��' },
+        { code: 'en', name: 'English', flag: '🇮🇳' },
         { code: 'hi', name: 'हिंदी', flag: '🇮🇳' },
         { code: 'bn', name: 'বাংলা', flag: '🇮🇳' },
         { code: 'ta', name: 'தமிழ்', flag: '🇮🇳' },
-        { code: 'te', name: 'తెలుగు', flag: '��' },
+        { code: 'te', name: 'తెలుగు', flag: 'IN' },
         { code: 'mr', name: 'मराठी', flag: '🇮🇳' },
-        { code: 'gu', name: 'ગુજરાતી', flag: '��' },
-        { code: 'kn', name: 'ಕನ್ನಡ', flag: '��' },
+        { code: 'gu', name: 'ગુજરાતી', flag: 'IN' },
+        { code: 'kn', name: 'ಕನ್ನಡ', flag: 'IN' },
         { code: 'ml', name: 'മലയാളം', flag: '🇮🇳' },
-        { code: 'pa', name: 'ਪੰਜਾਬੀ', flag: '�🇳' }
+        { code: 'pa', name: 'ਪੰਜਾਬੀ', flag: 'IN' }
     ] as const;
 
     const currentLang = languages.find(lang => lang.code === language) || languages[0];
@@ -841,8 +841,9 @@ const LanguageToggle: React.FC<{ className?: string }> = ({ className }) => {
         <div className={`relative ${className}`}>
             <button 
                 onClick={() => setIsOpen(!isOpen)}
-                className="p-2 rounded-lg bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm border border-slate-200/50 dark:border-slate-700/50 shadow-sm transition-all duration-300 text-slate-600 dark:text-slate-400 hover:bg-white dark:hover:bg-slate-800 hover:shadow-md flex items-center gap-2"
+                className="p-2 rounded-lg bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm border border-slate-200/50 dark:border-slate-700/50 shadow-sm transition-all duration-300 text-black dark:text-black hover:bg-white dark:hover:bg-slate-800 hover:shadow-md flex items-center gap-2"
                 aria-label="Change language"
+                title={t('action.selectLanguage')}
             >
                 <IconGlobe className="w-5 h-5" />
                 <span className="text-sm font-medium hidden sm:inline">{currentLang.flag} {currentLang.code.toUpperCase()}</span>
@@ -856,15 +857,15 @@ const LanguageToggle: React.FC<{ className?: string }> = ({ className }) => {
                         onClick={() => setIsOpen(false)}
                     />
                     {/* Dropdown */}
-                    <div className="absolute right-0 top-full mt-2 z-50 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-xl py-2 min-w-[180px] backdrop-blur-sm">
+                    <div className="absolute right-0 top-full mt-2 z-50 bg-white border border-slate-200 rounded-lg shadow-xl py-2 min-w-[180px] backdrop-blur-sm">
                         {languages.map((lang) => (
                             <button
                                 key={lang.code}
                                 onClick={() => handleLanguageChange(lang.code as Language)}
-                                className={`w-full px-4 py-2 text-left flex items-center gap-3 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors duration-200 ${
+                                className={`w-full px-4 py-2 text-left flex items-center gap-3 hover:bg-slate-100 transition-colors duration-200 ${
                                     language === lang.code 
-                                        ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400' 
-                                        : 'text-slate-600 dark:text-slate-300'
+                                        ? 'bg-emerald-50 text-black' 
+                                        : 'text-black'
                                 }`}
                             >
                                 <span className="text-lg">{lang.flag}</span>
@@ -974,7 +975,7 @@ const ToolsPage: React.FC = () => {
     const allToolsForMobile = [...tools, profileTool];
 
     return (
-        <div className="flex flex-col md:flex-row h-screen bg-transparent overflow-hidden">
+        <div className="tools-area flex flex-col md:flex-row h-screen bg-transparent overflow-hidden">
             <aside className="bg-white/80 dark:bg-slate-950/50 backdrop-blur-md border-b md:border-b-0 md:border-r border-slate-200 dark:border-slate-800 md:w-64 flex-shrink-0 flex flex-col">
                 <div className="p-4 hidden md:block">
                     <Link to="/" className="text-2xl font-bold flex items-center gap-2 text-slate-900 dark:text-white">
@@ -1050,7 +1051,39 @@ const ChatInterface: React.FC<{ isFullScreen: boolean }> = ({ isFullScreen }) =>
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const { t } = useLanguage();
 
-    useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages]);
+    useEffect(() => {
+        // Scroll to bottom when messages update
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+
+        // Helper: convert rgb(...) to hex like #f1f5f9
+        const rgbToHex = (rgb: string) => {
+            if (!rgb) return '';
+            const m = rgb.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
+            if (!m) return '';
+            const r = parseInt(m[1], 10);
+            const g = parseInt(m[2], 10);
+            const b = parseInt(m[3], 10);
+            return '#' + [r, g, b].map(x => x.toString(16).padStart(2, '0')).join('');
+        };
+
+        // If any chat bubble has background #f1f5f9, ensure text is black for readability
+        try {
+            const bubbles = document.querySelectorAll<HTMLElement>('.chat-bubble');
+            bubbles.forEach(b => {
+                const bg = getComputedStyle(b).backgroundColor;
+                const hex = rgbToHex(bg).toLowerCase();
+                if (hex === '#f1f5f9') {
+                    b.classList.add('text-black');
+                } else {
+                    // If it was previously forced, remove to preserve normal theming
+                    // but only remove if it was added by this logic (we can't easily track origin),
+                    // so keep safe: don't remove automatically to avoid flicker
+                }
+            });
+        } catch (err) {
+            // noop
+        }
+    }, [messages]);
 
     const handleSendMessage = async (e?: FormEvent, suggestion?: string) => {
         e?.preventDefault();
@@ -1068,7 +1101,7 @@ const ChatInterface: React.FC<{ isFullScreen: boolean }> = ({ isFullScreen }) =>
             {messages.map((msg, index) => (
                 <div key={index} className={`flex gap-3 ${msg.role === 'user' ? 'justify-end' : ''}`}>
                     {msg.role === 'model' && <div className="w-8 h-8 rounded-full bg-emerald-600 flex-shrink-0 flex items-center justify-center"><IconBot className="w-5 h-5 text-white" /></div>}
-                    <div className={`max-w-xl p-3 rounded-lg ${msg.role === 'user' ? 'bg-emerald-600 dark:bg-emerald-700 text-white' : 'bg-slate-200 dark:bg-slate-700'}`}>
+                    <div className={`chat-bubble max-w-xl p-3 rounded-lg ${msg.role === 'user' ? 'bg-emerald-600 dark:bg-emerald-700 text-black dark:text-white' : 'bg-slate-200 dark:bg-slate-700 text-black dark:text-white'}`}>
                          {msg.role === 'user' ? (
                             <p className="whitespace-pre-wrap">{msg.text}</p>
                         ) : (
@@ -1083,7 +1116,7 @@ const ChatInterface: React.FC<{ isFullScreen: boolean }> = ({ isFullScreen }) =>
             {isLoading && messages[messages.length - 1].role === 'user' && (
                  <div className="flex gap-3">
                     <div className="w-8 h-8 rounded-full bg-emerald-600 flex-shrink-0 flex items-center justify-center"><IconBot className="w-5 h-5 text-white" /></div>
-                    <div className={`max-w-xl p-3 rounded-lg bg-slate-200 dark:bg-slate-700 flex items-center gap-2`}>
+                    <div className={`chat-bubble max-w-xl p-3 rounded-lg bg-slate-200 dark:bg-slate-700 text-black dark:text-white flex items-center gap-2`}>
                         <div className="w-2 h-2 bg-slate-500 dark:bg-slate-400 rounded-full animate-pulse [animation-delay:-0.3s]"></div>
                         <div className="w-2 h-2 bg-slate-500 dark:bg-slate-400 rounded-full animate-pulse [animation-delay:-0.15s]"></div>
                         <div className="w-2 h-2 bg-slate-500 dark:bg-slate-400 rounded-full animate-pulse"></div>
