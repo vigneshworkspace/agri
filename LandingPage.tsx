@@ -212,7 +212,7 @@ const Testimonials: React.FC = () => {
         // Cleanup on unmount
         return () => {
             if (swiperRef.current) {
-                // swiperRef.current.destroy();
+                swiperRef.current.destroy();
             }
         };
     }, []);
