@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { SpeedInsights } from '@vercel/speed-insights/react';
 import { useNavigate } from 'react-router-dom';
 
 // Since Swiper is loaded from a CDN, we need to declare it for TypeScript
@@ -185,35 +186,36 @@ const ToolsInAction: React.FC = () => {
 };
 
 const Testimonials: React.FC = () => {
-    const [currentSlide, setCurrentSlide] = useState(0);
+    const swiperRef = useRef(null);
     
-    const testimonials = [
-        {
-            text: "AgriAssist Pro has completely transformed our farm's efficiency. The yield prediction is astonishingly accurate, and it's saved us thousands in potential losses.",
-            name: "John D.",
-            role: "Family Farm Owner",
-            avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face&auto=format"
-        },
-        {
-            text: "The smart irrigation feature alone cut our water consumption by 30%. This platform is a must-have for any farmer serious about sustainability and profit.",
-            name: "Maria S.",
-            role: "Vineyard Manager", 
-            avatar: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=100&h=100&fit=crop&crop=face&auto=format"
-        },
-        {
-            text: "As a large-scale operation, data is everything. AgriAssist Pro provides the critical insights we need to make informed decisions quickly. It's an indispensable part of our workflow.",
-            name: "David Chen",
-            role: "Agribusiness CEO",
-            avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face&auto=format"
-        }
-    ];
-
     useEffect(() => {
-        const interval = setInterval(() => {
-            setCurrentSlide((prev) => (prev + 1) % testimonials.length);
-        }, 5000);
-        return () => clearInterval(interval);
-    }, [testimonials.length]);
+        // Initialize Swiper when the component mounts
+        if (typeof Swiper !== 'undefined') {
+            swiperRef.current = new Swiper('.testimonial-swiper', {
+                slidesPerView: 1,
+                spaceBetween: 20,
+                loop: true,
+                autoplay: {
+                    delay: 5000,
+                    disableOnInteraction: false,
+                },
+                pagination: {
+                    el: '.swiper-pagination',
+                    clickable: true,
+                },
+                breakpoints: {
+                    768: { slidesPerView: 2, spaceBetween: 30 },
+                    1024: { slidesPerView: 3, spaceBetween: 40 }
+                }
+            });
+        }
+        // Cleanup on unmount
+        return () => {
+            if (swiperRef.current) {
+                // swiperRef.current.destroy();
+            }
+        };
+    }, []);
 
     return (
         <section className="py-20 sm:py-28 bg-white" id="testimonials">
@@ -222,68 +224,49 @@ const Testimonials: React.FC = () => {
                     <h2 className="text-4xl font-bold text-center tracking-tight">Loved by Modern Farmers</h2>
                     <p className="mt-4 max-w-2xl mx-auto text-lg text-[#609550]">Don't just take our word for it. Here's what our users are saying.</p>
                 </div>
-                
-                {/* Desktop view - show all testimonials */}
-                <div className="hidden md:grid md:grid-cols-3 gap-8 mt-16">
-                    {testimonials.map((testimonial, index) => (
-                        <div key={index} className="bg-[#f9fbf8] p-8 rounded-xl border border-[#d6e6d1] h-full flex flex-col justify-between">
-                            <p className="text-base text-[#111b0e] flex-grow">"{testimonial.text}"</p>
-                            <div className="flex items-center gap-4 mt-6 pt-6 border-t border-[#d6e6d1]">
-                                <img 
-                                    src={testimonial.avatar} 
-                                    alt={testimonial.name}
-                                    className="w-14 h-14 rounded-full object-cover"
-                                />
-                                <div>
-                                    <p className="font-bold text-lg">{testimonial.name}</p>
-                                    <p className="text-sm text-[#609550]">{testimonial.role}</p>
+                <div className="mt-16 swiper-container testimonial-swiper">
+                    <div className="swiper-wrapper">
+                        {/* Slide 1 */}
+                        <div className="swiper-slide p-2">
+                            <div className="bg-[#f9fbf8] p-8 rounded-xl border border-[#d6e6d1] h-full flex flex-col justify-between">
+                                <p className="text-base text-[#111b0e] flex-grow">"AgriAssist Pro has completely transformed our farm's efficiency. The yield prediction is astonishingly accurate, and it's saved us thousands in potential losses."</p>
+                                <div className="flex items-center gap-4 mt-6 pt-6 border-t border-[#d6e6d1]">
+                                    <div className="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-14" style={{ backgroundImage: "url('https://lh3.googleusercontent.com/aida-public/AB6AXuBGEW6ewPeV1egrN5LjWAmTnzdovrLQDLy-KhjEpBkxEilEn7Im8JDmUqOgFJ931DvbU9kNRB1HgjO0vuh9SJk5835370hcr4d51DSAsfh_56LP2zC0ucl14uRT4KBB4SsFENfbgT6rp4XyR_iIhNM6FJQMNFXPhquqJ9_kezWYB0nkjiwDZIqA5i7SPUvG_wam0tVlkDFt4btO0gpoPusLJ9pBYSubykI2RX2KG-FsRgo9-TY503-bnBsAPTjewFd5Kqqr8zr5Gtja')" }}></div>
+                                    <div>
+                                        <p className="font-bold text-lg">John D.</p>
+                                        <p className="text-sm text-[#609550]">Family Farm Owner</p>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    ))}
-                </div>
-
-                {/* Mobile view - carousel */}
-                <div className="md:hidden mt-16">
-                    <div className="relative overflow-hidden">
-                        <div 
-                            className="flex transition-transform duration-500 ease-in-out"
-                            style={{ transform: `translateX(-${currentSlide * 100}%)` }}
-                        >
-                            {testimonials.map((testimonial, index) => (
-                                <div key={index} className="w-full flex-shrink-0 px-2">
-                                    <div className="bg-[#f9fbf8] p-8 rounded-xl border border-[#d6e6d1] h-full flex flex-col justify-between min-h-[300px]">
-                                        <p className="text-base text-[#111b0e] flex-grow">"{testimonial.text}"</p>
-                                        <div className="flex items-center gap-4 mt-6 pt-6 border-t border-[#d6e6d1]">
-                                            <img 
-                                                src={testimonial.avatar} 
-                                                alt={testimonial.name}
-                                                className="w-14 h-14 rounded-full object-cover"
-                                            />
-                                            <div>
-                                                <p className="font-bold text-lg">{testimonial.name}</p>
-                                                <p className="text-sm text-[#609550]">{testimonial.role}</p>
-                                            </div>
-                                        </div>
+                        {/* Slide 2 */}
+                        <div className="swiper-slide p-2">
+                             <div className="bg-[#f9fbf8] p-8 rounded-xl border border-[#d6e6d1] h-full flex flex-col justify-between">
+                                <p className="text-base text-[#111b0e] flex-grow">"The smart irrigation feature alone cut our water consumption by 30%. This platform is a must-have for any farmer serious about sustainability and profit."</p>
+                                <div className="flex items-center gap-4 mt-6 pt-6 border-t border-[#d6e6d1]">
+                                    <div className="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-14" style={{ backgroundImage: "url('https://lh3.googleusercontent.com/aida-public/AB6AXuBGEW6ewPeV1egrN5LjWAmTnzdovrLQDLy-KhjEpBkxEilEn7Im8JDmUqOgFJ931DvbU9kNRB1HgjO0vuh9SJk5835370hcr4d51DSAsfh_56LP2zC0ucl14uRT4KBB4SsFENfbgT6rp4XyR_iIhNM6FJQMNFXPhquqJ9_kezWYB0nkjiwDZIqA5i7SPUvG_wam0tVlkDFt4btO0gpoPusLJ9pBYSubykI2RX2KG-FsRgo9-TY503-bnBsAPTjewFd5Kqqr8zr5Gtja')" }}></div>
+                                    <div>
+                                        <p className="font-bold text-lg">Maria S.</p>
+                                        <p className="text-sm text-[#609550]">Vineyard Manager</p>
                                     </div>
                                 </div>
-                            ))}
+                            </div>
+                        </div>
+                        {/* Slide 3 */}
+                        <div className="swiper-slide p-2">
+                             <div className="bg-[#f9fbf8] p-8 rounded-xl border border-[#d6e6d1] h-full flex flex-col justify-between">
+                                <p className="text-base text-[#111b0e] flex-grow">"As a large-scale operation, data is everything. AgriAssist Pro provides the critical insights we need to make informed decisions quickly. It's an indispensable part of our workflow."</p>
+                                <div className="flex items-center gap-4 mt-6 pt-6 border-t border-[#d6e6d1]">
+                                    <div className="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-14" style={{ backgroundImage: "url('https://lh3.googleusercontent.com/aida-public/AB6AXuBGEW6ewPeV1egrN5LjWAmTnzdovrLQDLy-KhjEpBkxEilEn7Im8JDmUqOgFJ931DvbU9kNRB1HgjO0vuh9SJk5835370hcr4d51DSAsfh_56LP2zC0ucl14uRT4KBB4SsFENfbgT6rp4XyR_iIhNM6FJQMNFXPhquqJ9_kezWYB0nkjiwDZIqA5i7SPUvG_wam0tVlkDFt4btO0gpoPusLJ9pBYSubykI2RX2KG-FsRgo9-TY503-bnBsAPTjewFd5Kqqr8zr5Gtja')" }}></div>
+                                    <div>
+                                        <p className="font-bold text-lg">David Chen</p>
+                                        <p className="text-sm text-[#609550]">Agribusiness CEO</p>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    
-                    {/* Pagination dots */}
-                    <div className="flex justify-center mt-8 space-x-2">
-                        {testimonials.map((_, index) => (
-                            <button
-                                key={index}
-                                onClick={() => setCurrentSlide(index)}
-                                className={`w-3 h-3 rounded-full transition-colors duration-200 ${
-                                    currentSlide === index ? 'bg-[#4cdf20]' : 'bg-[#d6e6d1]'
-                                }`}
-                                aria-label={`Go to slide ${index + 1}`}
-                            />
-                        ))}
-                    </div>
+                    <div className="swiper-pagination mt-8"></div>
                 </div>
             </div>
         </section>
@@ -417,6 +400,8 @@ const LandingPage: React.FC = () => {
                     <CallToAction />
                 </main>
                 <Footer onNavLinkClick={handleNavLinkClick}/>
+                {/* Vercel Speed Insights — lightweight integration for runtime metrics */}
+                <SpeedInsights />
             </div>
         </div>
     );
