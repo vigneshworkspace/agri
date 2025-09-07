@@ -44,6 +44,15 @@ const mockMarketAnalysis: MarketAnalysisResult = {
 let chat: Chat | null = null;
 let currentLanguage: string = 'en';
 
+/**
+ * Initializes or retrieves a persistent chat session with the AI.
+ * The chat session is contextualized with the user's profile and selected language.
+ * If the language changes, the chat session is reset.
+ * @param {UserProfile} [profile] - The user's profile data to provide context to the AI.
+ * @param {string} [language='en'] - The selected language code (e.g., 'en', 'hi').
+ * @returns {Chat} The initialized or existing chat instance.
+ * @throws {Error} If the Gemini API key is not configured and a real chat session is attempted.
+ */
 export const startChat = (profile?: UserProfile, language: string = 'en'): Chat => {
     // Reset chat if language changed
     if (chat && currentLanguage !== language) {
@@ -106,6 +115,14 @@ IMPORTANT: The user has selected ${selectedLanguage} as their preferred language
     return chat;
 };
 
+/**
+ * Sends a message to the AI and streams the response.
+ * Falls back to a mock response if the API key is not available.
+ * @param {string} message - The user's message to send to the AI.
+ * @param {UserProfile} [profile] - The user's profile for context.
+ * @param {string} [language='en'] - The language for the AI's response.
+ * @returns {AsyncGenerator<string>} An async generator that yields chunks of the AI's response text.
+ */
 export async function* streamChatResponse(message: string, profile?: UserProfile, language: string = 'en') {
     if (useMockData) {
         for (const word of mockChatResponse.split(" ")) {
@@ -123,12 +140,23 @@ export async function* streamChatResponse(message: string, profile?: UserProfile
     }
 }
 
+/**
+ * Resets the current chat session, forcing a new one to be created on the next message.
+ */
 export const resetChat = () => {
     chat = null;
     currentLanguage = 'en';
 };
 
 // --- DISEASE DETECTION SERVICE ---
+/**
+ * Analyzes a crop image to detect diseases.
+ * The image is sent to the AI model for analysis, and the result is returned as a structured JSON object.
+ * Falls back to mock data if the API key is not available.
+ * @param {string} base64Image - The base64-encoded string of the image.
+ * @param {string} mimeType - The MIME type of the image (e.g., 'image/jpeg').
+ * @returns {Promise<DiseaseAnalysisResult>} A promise that resolves to the disease analysis result.
+ */
 export const analyzeCropDisease = async (base64Image: string, mimeType: string): Promise<any> => {
      if (useMockData || !ai) {
         await new Promise(res => setTimeout(res, 2000));
@@ -161,6 +189,13 @@ export const analyzeCropDisease = async (base64Image: string, mimeType: string):
 
 
 // --- YIELD PREDICTION SERVICE ---
+/**
+ * Predicts crop yield based on various farm parameters.
+ * Sends the parameters to the AI model and expects a structured JSON response.
+ * Falls back to mock data if the API key is not available.
+ * @param {YieldPredictionParams} params - The parameters for the yield prediction.
+ * @returns {Promise<YieldPredictionResult>} A promise that resolves to the yield prediction result.
+ */
 export const predictYield = async (params: YieldPredictionParams): Promise<any> => {
     if (useMockData || !ai) {
         await new Promise(res => setTimeout(res, 1500));
@@ -198,6 +233,14 @@ export const predictYield = async (params: YieldPredictionParams): Promise<any> 
 };
 
 // --- SMART WATERING SERVICE ---
+/**
+ * Provides smart watering advice based on crop type, soil moisture, and a set threshold.
+ * Falls back to mock data if the API key is not available.
+ * @param {string} crop - The type of crop being monitored.
+ * @param {number} moisture - The current soil moisture percentage.
+ * @param {number} threshold - The user-defined moisture threshold for watering.
+ * @returns {Promise<string>} A promise that resolves to a string containing the watering advice.
+ */
 export const getWateringAdvice = async (crop: string, moisture: number, threshold: number): Promise<string> => {
     if (useMockData || !ai) {
         await new Promise(res => setTimeout(res, 1000));
@@ -222,7 +265,15 @@ export const getWateringAdvice = async (crop: string, moisture: number, threshol
 };
 
 // --- MARKET ADVISOR SERVICE ---
-export const getMarketAnalysis = async (crop: string, location: string): Promise<MarketAnalysisResult> => {
+/**
+ * Fetches a market analysis for a specific crop in a given location using Google Search grounding.
+ * The AI generates a trend analysis, forecast, and recommendation.
+ * Falls back to mock data if the API key is not available.
+ * @param {string} crop - The crop to analyze.
+ * @param {string} location - The geographical region for the market analysis.
+ * @returns {Promise<MarketAnalysisResult>} A promise that resolves to the market analysis result, including sources.
+ */
+export const getMarketAnalysis = async (crop: string, location:string): Promise<MarketAnalysisResult> => {
     if (useMockData || !ai) {
         await new Promise(res => setTimeout(res, 2500));
         return mockMarketAnalysis;
