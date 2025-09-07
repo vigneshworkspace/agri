@@ -16,17 +16,26 @@ declare global {
 const Header: React.FC<{ onNavLinkClick: (id: string) => void }> = ({ onNavLinkClick }) => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const navigate = useNavigate();
+    const menuRef = useRef<HTMLDivElement | null>(null);
+    const firstLinkRef = useRef<HTMLAnchorElement | null>(null);
+
+    useEffect(() => {
+        // Lock body scroll when menu is open
+        document.body.style.overflow = isMenuOpen ? 'hidden' : '';
+        if (isMenuOpen && firstLinkRef.current) firstLinkRef.current.focus();
+        return () => { document.body.style.overflow = ''; };
+    }, [isMenuOpen]);
 
     const handleLinkClick = (e: React.MouseEvent<HTMLAnchorElement>, id: string) => {
         e.preventDefault();
         onNavLinkClick(id);
-        setIsMenuOpen(false); // Close mobile menu on link click
+        setIsMenuOpen(false);
     };
 
     const handleGetStarted = () => {
-        // Set authentication flag and navigate to tools
         localStorage.setItem('agri_user', 'true');
         navigate('/tools/assistant');
+        setIsMenuOpen(false);
     };
 
     return (
@@ -37,32 +46,75 @@ const Header: React.FC<{ onNavLinkClick: (id: string) => void }> = ({ onNavLinkC
                         <span className="material-symbols-outlined text-4xl text-[#4cdf20]">eco</span>
                         AgriAssist Pro
                     </a>
+
                     <nav className="hidden md:flex gap-10 items-center">
                         <a className="text-base font-medium hover:text-[#4cdf20] transition-colors" href="#capabilities" onClick={(e) => handleLinkClick(e, 'capabilities')}>Capabilities</a>
                         <a className="text-base font-medium hover:text-[#4cdf20] transition-colors" href="#how-it-works" onClick={(e) => handleLinkClick(e, 'how-it-works')}>How It Works</a>
                         <a className="text-base font-medium hover:text-[#4cdf20] transition-colors" href="#testimonials" onClick={(e) => handleLinkClick(e, 'testimonials')}>Testimonials</a>
                     </nav>
+
                     <button onClick={handleGetStarted} className="hidden md:flex min-w-[100px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-12 px-6 bg-[#4cdf20] text-[#111b0e] text-base font-bold leading-normal tracking-[0.015em] hover:bg-opacity-90 transition-colors">
                         <span className="truncate">Get Started</span>
                     </button>
-                    <button className="md:hidden text-[#111b0e]" onClick={() => setIsMenuOpen(!isMenuOpen)}>
+
+                    <button
+                        className="md:hidden text-[#111b0e]"
+                        aria-label={isMenuOpen ? 'Close menu' : 'Open menu'}
+                        aria-expanded={isMenuOpen}
+                        onClick={() => setIsMenuOpen(!isMenuOpen)}
+                    >
                         <span className="material-symbols-outlined text-3xl">{isMenuOpen ? 'close' : 'menu'}</span>
                     </button>
                 </div>
-                 {/* Mobile Menu */}
-                {isMenuOpen && (
-                    <div className="md:hidden py-4">
-                        <nav className="flex flex-col gap-4">
-                             <a className="text-base font-medium hover:text-[#4cdf20] transition-colors" href="#capabilities" onClick={(e) => handleLinkClick(e, 'capabilities')}>Capabilities</a>
-                            <a className="text-base font-medium hover:text-[#4cdf20] transition-colors" href="#how-it-works" onClick={(e) => handleLinkClick(e, 'how-it-works')}>How It Works</a>
-                            <a className="text-base font-medium hover:text-[#4cdf20] transition-colors" href="#testimonials" onClick={(e) => handleLinkClick(e, 'testimonials')}>Testimonials</a>
-                            <button onClick={handleGetStarted} className="mt-2 w-full cursor-pointer items-center justify-center overflow-hidden rounded-lg h-12 px-6 bg-[#4cdf20] text-[#111b0e] text-base font-bold leading-normal tracking-[0.015em] hover:bg-opacity-90 transition-colors">
-                                <span className="truncate">Get Started</span>
-                            </button>
+            </div>
+
+            {/* Improved Mobile Drawer */}
+            {isMenuOpen && (
+                <div className="md:hidden fixed inset-0 z-50 flex">
+                    {/* overlay */}
+                    <button
+                        aria-hidden="true"
+                        className="absolute inset-0 bg-black/40"
+                        onClick={() => setIsMenuOpen(false)}
+                    />
+                    {/* drawer panel */}
+                    <div
+                        ref={menuRef}
+                        role="dialog"
+                        aria-modal="true"
+                        aria-label="Mobile navigation"
+                        className="ml-auto w-80 max-w-full h-full bg-white p-6 shadow-xl transform transition-transform duration-200"
+                    >
+                        <nav className="flex flex-col gap-4" aria-label="Mobile links">
+                            <a
+                                ref={firstLinkRef}
+                                className="text-base font-medium text-[#111b0e] hover:text-[#4cdf20] transition-colors focus:outline-none focus:ring-2 focus:ring-[#4cdf20] rounded"
+                                href="#capabilities"
+                                onClick={(e) => handleLinkClick(e, 'capabilities')}
+                            >Capabilities</a>
+                            <a
+                                className="text-base font-medium text-[#111b0e] hover:text-[#4cdf20] transition-colors focus:outline-none focus:ring-2 focus:ring-[#4cdf20] rounded"
+                                href="#how-it-works"
+                                onClick={(e) => handleLinkClick(e, 'how-it-works')}
+                            >How It Works</a>
+                            <a
+                                className="text-base font-medium text-[#111b0e] hover:text-[#4cdf20] transition-colors focus:outline-none focus:ring-2 focus:ring-[#4cdf20] rounded"
+                                href="#testimonials"
+                                onClick={(e) => handleLinkClick(e, 'testimonials')}
+                            >Testimonials</a>
+
+                            <div className="mt-4">
+                                <button
+                                    onClick={handleGetStarted}
+                                    className="w-full cursor-pointer items-center justify-center rounded-lg h-12 px-4 bg-[#4cdf20] text-[#111b0e] text-base font-bold hover:bg-opacity-90 transition-colors"
+                                >
+                                    Get Started
+                                </button>
+                            </div>
                         </nav>
                     </div>
-                )}
-            </div>
+                </div>
+            )}
         </header>
     );
 };
@@ -212,7 +264,7 @@ const Testimonials: React.FC = () => {
         // Cleanup on unmount
         return () => {
             if (swiperRef.current) {
-                swiperRef.current.destroy();
+                // swiperRef.current.destroy();
             }
         };
     }, []);
