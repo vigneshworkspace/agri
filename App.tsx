@@ -59,14 +59,19 @@ const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) =>
 
     useEffect(() => {
         const root = window.document.documentElement;
+        const body = document.body;
         
         // Explicitly set the correct class on the <html> element
         if (theme === 'dark') {
             root.classList.add('dark');
             root.classList.remove('light');
+            body.style.backgroundColor = '#0f172a'; // slate-900
+            body.style.color = '#f1f5f9'; // slate-100
         } else {
             root.classList.add('light');
             root.classList.remove('dark');
+            body.style.backgroundColor = '#f8fafc'; // slate-50
+            body.style.color = '#1e293b'; // slate-800
         }
 
         // Persist the theme choice in localStorage
@@ -746,12 +751,12 @@ export const useProfile = () => useContext(ProfileContext)!;
 
 // --- UI COMPONENTS ---
 const Card: React.FC<{ children: React.ReactNode, className?: string, onClick?: (e: React.MouseEvent<HTMLDivElement>) => void }> = ({ children, className, onClick }) => (
-    <div onClick={onClick} className={`bg-white/60 dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 rounded-lg p-6 shadow-lg ${className}`}>
+    <div onClick={onClick} className={`bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border border-slate-200/50 dark:border-slate-700/50 rounded-lg p-6 shadow-lg hover:shadow-xl transition-all duration-300 ${className}`}>
         {children}
     </div>
 );
 const Button: React.FC<{ children: React.ReactNode, onClick?: () => void, className?: string, type?: "button" | "submit" | "reset", disabled?: boolean }> = ({ children, onClick, className, type = "button", disabled }) => (
-    <button type={type} onClick={onClick} disabled={disabled} className={`bg-emerald-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-emerald-500 transition-all duration-300 flex items-center justify-center gap-2 ${className} disabled:bg-slate-300 dark:disabled:bg-slate-600 disabled:cursor-not-allowed`}>
+    <button type={type} onClick={onClick} disabled={disabled} className={`bg-emerald-600 dark:bg-emerald-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-emerald-500 dark:hover:bg-emerald-400 active:scale-95 transition-all duration-200 flex items-center justify-center gap-2 ${className} disabled:bg-slate-300 dark:disabled:bg-slate-600 disabled:cursor-not-allowed disabled:active:scale-100`}>
         {children}
     </button>
 );
@@ -1028,6 +1033,23 @@ const ToolsPage: React.FC = () => {
                 </div>
             </aside>
 
+            {/* Mobile top header: visible only on small screens */}
+            <div className="md:hidden fixed top-0 left-0 right-0 z-50 bg-white/90 dark:bg-slate-950/90 backdrop-blur-sm border-b border-slate-200 dark:border-slate-800">
+                <div className="flex items-center justify-between px-4 py-3">
+                    <Link to="/" className="text-xl font-bold flex items-center gap-2 text-slate-900 dark:text-white">
+                        <span className="material-symbols-outlined text-2xl text-[#4cdf20] notranslate" translate="no">eco</span>
+                        <span>{t('app.name')}</span>
+                    </Link>
+                    <div className="flex items-center gap-2">
+                        <LanguageToggle />
+                        <ThemeToggle />
+                        <button onClick={() => clerk.signOut()} className="p-2 rounded-full text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors">
+                            <span className="material-symbols-outlined text-xl notranslate" translate="no">logout</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
             {/* Mobile bottom nav: visible only on small screens (fixed) */}
             <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/90 dark:bg-slate-950/80 backdrop-blur-sm border-t border-slate-200 dark:border-slate-800">
                 <div className="flex justify-around items-center gap-2 overflow-x-auto px-2 py-2 max-w-full">
@@ -1045,7 +1067,7 @@ const ToolsPage: React.FC = () => {
                     ))}
                 </div>
             </div>
-            <main className="flex-1 overflow-y-auto p-4 md:p-8 relative pb-20 md:pb-0">
+            <main className="flex-1 overflow-y-auto p-4 md:p-8 relative pb-20 md:pb-0 pt-16 md:pt-0">
                 <Outlet />
             </main>
         </div>
