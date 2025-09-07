@@ -758,9 +758,9 @@ const Button: React.FC<{ children: React.ReactNode, onClick?: () => void, classN
 const ToolHeader: React.FC<{ icon: React.ReactNode, title: string, subtitle: string, children?: React.ReactNode }> = ({ icon, title, subtitle, children }) => (
     <div className="mb-8 flex justify-between items-start">
         <div>
-            <div className="flex items-center gap-4 mb-2">
+                <div className="flex items-center gap-4 mb-2">
                 <div className="text-emerald-400">{icon}</div>
-                <h1 className="text-3xl font-bold text-slate-900 dark:text-white">{title}</h1>
+                <h1 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-white">{title}</h1>
             </div>
             <p className="text-slate-500 dark:text-slate-400">{subtitle}</p>
         </div>
@@ -976,7 +976,7 @@ const ToolsPage: React.FC = () => {
 
     return (
         <div className="tools-area flex flex-col md:flex-row h-screen bg-transparent overflow-hidden">
-            <aside className="bg-white/80 dark:bg-slate-950/50 backdrop-blur-md border-b md:border-b-0 md:border-r border-slate-200 dark:border-slate-800 md:w-64 flex-shrink-0 flex flex-col">
+            <aside className="hidden md:flex bg-white/80 dark:bg-slate-950/50 backdrop-blur-md border-b md:border-b-0 md:border-r border-slate-200 dark:border-slate-800 md:w-64 flex-shrink-0 flex flex-col">
                 <div className="p-4 hidden md:block">
                     <Link to="/" className="text-2xl font-bold flex items-center gap-2 text-slate-900 dark:text-white">
                         <IconLeaf className="text-emerald-400 w-8 h-8" />
@@ -984,16 +984,7 @@ const ToolsPage: React.FC = () => {
                     </Link>
                 </div>
                 <div className="flex-1 flex flex-col justify-between">
-                    <nav className="md:hidden p-2">
-                        <div className="flex space-x-2 overflow-x-auto pb-2">
-                            {allToolsForMobile.map(tool => (
-                                <Link key={tool.name} to={tool.path} className={`flex-shrink-0 flex items-center gap-2 py-2 px-3 rounded-md text-sm transition-colors duration-200 ${location.pathname.startsWith(tool.path) ? 'bg-emerald-600 text-white' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800'}`}>
-                                    {tool.icon}
-                                    {tool.name}
-                                </Link>
-                            ))}
-                        </div>
-                    </nav>
+                    {/* mobile nav moved below so the aside doesn't occupy full screen on small devices */}
                     <nav className="hidden md:block p-4">
                         <ul>
                             {tools.map(tool => (
@@ -1036,7 +1027,25 @@ const ToolsPage: React.FC = () => {
                     </div>
                 </div>
             </aside>
-            <main className="flex-1 overflow-y-auto p-4 md:p-8 relative">
+
+            {/* Mobile bottom nav: visible only on small screens (fixed) */}
+            <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/90 dark:bg-slate-950/80 backdrop-blur-sm border-t border-slate-200 dark:border-slate-800">
+                <div className="flex justify-around items-center gap-2 overflow-x-auto px-2 py-2 max-w-full">
+                    {allToolsForMobile.map(tool => (
+                        <Link
+                            key={tool.name}
+                            to={tool.path}
+                            className={`flex-shrink-0 flex flex-col items-center justify-center w-14 h-14 rounded-full p-1 transition-colors duration-200 ${location.pathname.startsWith(tool.path) ? 'bg-emerald-600 text-white shadow-lg' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800'}`}
+                            title={tool.name}
+                        >
+                            <div className="w-6 h-6 flex items-center justify-center">{tool.icon}</div>
+                            {/* small label for accessibility, hidden on very small screens */}
+                            <span className="mt-1 text-[10px] truncate w-16 hidden xs:inline-block sm:hidden">{tool.name}</span>
+                        </Link>
+                    ))}
+                </div>
+            </div>
+            <main className="flex-1 overflow-y-auto p-4 md:p-8 relative pb-20 md:pb-0">
                 <Outlet />
             </main>
         </div>
