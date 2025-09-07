@@ -1,54 +1,110 @@
+# AgriAssist Pro
 
-## Build for production
+**Smarter Farming, Sustainable Future.**
 
-1. Install dependencies (if not done):
-   `npm install`
-2. Build the static assets:
-   `npm run build`
-3. Preview the production build locally:
-   `npm run preview`
+AgriAssist Pro is a modern, AI-powered web application designed to be a smart farming companion. It provides farmers with data-driven insights to optimize their operations, increase productivity, and promote sustainability. The application leverages Google's Gemini AI for advanced analytics and Supabase for backend services.
 
-## Deploy (Vercel)
+## Features
 
-This project is configured for Vercel (see `vercel.json`). By default the production branch is `main`.
+- **AI Agricultural Assistant**: An interactive chat interface where farmers can ask questions about crop management, soil health, and other agricultural topics.
+- **Crop Disease Detection**: Upload an image of a plant leaf to get an AI-powered analysis of potential diseases, including confidence scores, descriptions, and treatment plans.
+- **Yield Prediction**: Forecast crop yields with high accuracy using a predictive model that considers crop type, farm size, location, and soil type.
+- **Smart Watering System**: Monitor simulated soil moisture levels and receive intelligent watering recommendations based on crop type and user-defined thresholds.
+- **Market Advisor**: Get AI-powered market analysis and price forecasts for various crops, grounded with real-time Google Search data.
+- **Multi-Language Support**: The user interface is available in multiple languages, including English and several Indian languages, to cater to a diverse user base.
+- **User Profile Management**: Users can manage their farm details, which personalizes the advice and predictions provided by the tools.
+- **Responsive Design**: A clean, modern, and fully responsive interface that works on both desktop and mobile devices.
 
-Recommended deploy workflow:
+## Getting Started
 
-- Push your changes to `main` and let Vercel build automatically.
-- If Vercel does not pick up your latest commit or you need to force a new build, you can trigger a redeploy without code changes by creating an empty commit and pushing it:
+These instructions will get you a copy of the project up and running on your local machine for development and testing purposes.
 
-```powershell
-cd "C:\temp\project farmboy\agriassist-pro"
-git commit --allow-empty -m "chore: trigger Vercel redeploy"
-git push origin main
+### Prerequisites
+
+- [Node.js](https://nodejs.org/) (v18 or later recommended)
+- [npm](https://www.npmjs.com/) (usually comes with Node.js)
+- A web browser
+
+### Installation
+
+1.  **Clone the repository:**
+    ```bash
+    git clone https://github.com/vigneshworkspace/agri.git
+    cd agri
+    ```
+
+2.  **Install dependencies:**
+    ```bash
+    npm install
+    ```
+
+3.  **Set up environment variables:**
+
+    Create a `.env` file in the root of the project directory. This file will store your API keys and other secrets.
+    ```bash
+    touch .env
+    ```
+
+    Open the `.env` file and add the following variables, replacing the placeholder values with your actual credentials:
+
+    ```env
+    # Get your key from Google AI Studio: https://aistudio.google.com/app/apikey
+    VITE_GEMINI_API_KEY=YOUR_GEMINI_API_KEY
+
+    # Get your keys from the Supabase project settings
+    VITE_SUPABASE_URL=YOUR_SUPABASE_URL
+    VITE_SUPABASE_ANON_KEY=YOUR_SUPABASE_ANON_KEY
+
+    # Get your keys from your Clerk dashboard
+    VITE_CLERK_PUBLISHABLE_KEY=YOUR_CLERK_PUBLISHABLE_KEY
+    ```
+
+    **Note**: If you do not provide a `VITE_GEMINI_API_KEY`, the application will run using mock data for all AI-powered features.
+
+4.  **Run the development server:**
+    ```bash
+    npm run dev
+    ```
+
+    The application should now be running on `http://localhost:5173` (or the next available port).
+
+## Usage
+
+Once the application is running, you can explore its features:
+
+-   **Landing Page**: The initial page you see, which provides an overview of the application.
+-   **Authentication**: Click "Get Started" or "Start Your Free Trial" to sign up or log in using the Clerk-powered authentication flow.
+-   **Tools Dashboard**: After logging in, you will be directed to the main tools dashboard.
+    -   **Navigation**: Use the sidebar (on desktop) or the bottom navigation bar (on mobile) to switch between different tools like the AI Assistant, Disease Detection, etc.
+    -   **Profile**: Navigate to the "Profile" page to enter your farm details. This information is used to tailor the AI's recommendations.
+    -   **AI Assistant**: Type a question in the chat box or use a suggestion chip to start a conversation with the AI.
+    -   **Disease Detection**: Upload a clear photo of a plant leaf to receive a diagnosis.
+    -   **Yield Prediction**: Select a crop and ensure your profile is complete to get a yield forecast.
+
+## Building for Production
+
+To create a production-ready build of the application, run the following command:
+
+```bash
+npm run build
 ```
 
-- Alternatively, use the Vercel CLI to deploy directly (requires `vercel` and login):
+This will generate a `dist` folder containing the optimized static assets. You can preview the production build locally with:
 
-```powershell
-# install once if needed
-npm i -g vercel
-
-# deploy current directory to production
-vercel --prod --confirm
+```bash
+npm run preview
 ```
 
-## Verify deployment
+## Deployment
 
-- Check the Vercel dashboard (Project → Deployments) and confirm the latest deployment commit SHA matches the `git rev-parse origin/main` output.
-- Inspect the deployment build logs if the site still shows old content.
-- Hard-refresh the site (Ctrl+F5) or check in an Incognito window to avoid browser cache.
+This project is configured for easy deployment to [Vercel](https://vercel.com/).
 
-## DNS / Custom domain checks
+-   **Automatic Deploys**: The recommended workflow is to connect your GitHub repository to a Vercel project. Vercel will automatically build and deploy new versions whenever you push to the `main` branch.
+-   **Manual Deploys**: You can also deploy from your local machine using the Vercel CLI:
+    ```bash
+    # Install Vercel CLI if you haven't already
+    npm install -g vercel
 
-- If you use a custom domain, confirm it points to the correct Vercel project in the Vercel dashboard and that DNS records (CNAME / A) match Vercel's instructions.
-
-## Quick troubleshooting
-
-- Ensure the Vercel project is connected to the `vigneshworkspace/agri` repo and the Production Branch is `main`.
-- If builds fail on Vercel, open the failed deployment and review the build logs for errors.
-
-## Changelog (recent)
-
-- chore(ui): mobile nav & responsive header — updated `App.tsx` (responsive mobile toolbar and header).
-- chore: trigger Vercel redeploy — empty commit to force Vercel to rebuild when needed.
+    # Deploy to production
+    vercel --prod
+    ```

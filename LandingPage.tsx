@@ -13,6 +13,13 @@ declare global {
     }
 }
 
+/**
+ * Renders the header for the landing page.
+ * It includes the site logo, navigation links, a "Get Started" button, and a mobile menu toggle.
+ * @param {{ onNavLinkClick: (id: string) => void }} props - Component props.
+ * @param {function(id: string): void} props.onNavLinkClick - A callback function to handle smooth scrolling when a navigation link is clicked.
+ * @returns {React.ReactElement} The rendered header component.
+ */
 const Header: React.FC<{ onNavLinkClick: (id: string) => void }> = ({ onNavLinkClick }) => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const navigate = useNavigate();
@@ -67,6 +74,11 @@ const Header: React.FC<{ onNavLinkClick: (id: string) => void }> = ({ onNavLinkC
     );
 };
 
+/**
+ * Renders the main hero section of the landing page.
+ * It features a prominent headline, a descriptive paragraph, and a call-to-action button.
+ * @returns {React.ReactElement} The rendered hero section.
+ */
 const Hero: React.FC = () => {
     const navigate = useNavigate();
 
@@ -91,6 +103,11 @@ const Hero: React.FC = () => {
     );
 };
 
+/**
+ * Renders the "Capabilities" section of the landing page.
+ * This section highlights the key features of the platform with icons and brief descriptions.
+ * @returns {React.ReactElement} The rendered capabilities section.
+ */
 const Capabilities: React.FC = () => (
     <section className="py-20 sm:py-28" id="capabilities">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -124,6 +141,11 @@ const Capabilities: React.FC = () => (
     </section>
 );
 
+/**
+ * Renders the "How It Works" section of the landing page.
+ * It explains the process of using the platform in three simple steps.
+ * @returns {React.ReactElement} The rendered "How It Works" section.
+ */
 const HowItWorks: React.FC = () => (
     <section className="py-20 sm:py-28 bg-white" id="how-it-works">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -155,6 +177,11 @@ const HowItWorks: React.FC = () => (
     </section>
 );
 
+/**
+ * Renders a section showcasing the application's dashboard or tools in action.
+ * It includes a title, description, an image, and a call-to-action button to explore the features.
+ * @returns {React.ReactElement} The rendered "Tools in Action" section.
+ */
 const ToolsInAction: React.FC = () => {
     const navigate = useNavigate();
 
@@ -185,6 +212,11 @@ const ToolsInAction: React.FC = () => {
     );
 };
 
+/**
+ * Renders the "Testimonials" section, which displays user feedback in a carousel.
+ * It uses the Swiper library (loaded from a CDN) to create an interactive slider.
+ * @returns {React.ReactElement} The rendered testimonials section.
+ */
 const Testimonials: React.FC = () => {
     const swiperRef = useRef(null);
     
@@ -274,6 +306,11 @@ const Testimonials: React.FC = () => {
 };
 
 
+/**
+ * Renders a final call-to-action section at the bottom of the page.
+ * It encourages users to start using the application with a large, prominent button.
+ * @returns {React.ReactElement} The rendered call-to-action section.
+ */
 const CallToAction: React.FC = () => {
     const navigate = useNavigate();
 
@@ -297,6 +334,13 @@ const CallToAction: React.FC = () => {
     );
 };
 
+/**
+ * Renders the footer for the landing page.
+ * It contains quick links, legal information, social media connections, and a copyright notice.
+ * @param {{ onNavLinkClick: (id: string) => void }} props - Component props.
+ * @param {function(id: string): void} props.onNavLinkClick - A callback function to handle smooth scrolling for footer navigation links.
+ * @returns {React.ReactElement} The rendered footer component.
+ */
 const Footer: React.FC<{ onNavLinkClick: (id: string) => void }> = ({ onNavLinkClick }) => {
     const handleLinkClick = (e: React.MouseEvent<HTMLAnchorElement>, id: string) => {
         e.preventDefault();
@@ -344,7 +388,12 @@ const Footer: React.FC<{ onNavLinkClick: (id: string) => void }> = ({ onNavLinkC
 };
 
 
-// Main Landing Page Component
+/**
+ * The main component for the application's landing page.
+ * It composes various sections like Header, Hero, Capabilities, etc., to build the full page.
+ * It also handles loading external scripts and styles required for the page.
+ * @returns {React.ReactElement} The rendered landing page.
+ */
 const LandingPage: React.FC = () => {
     
     useEffect(() => {

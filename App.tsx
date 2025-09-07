@@ -9,6 +9,12 @@ import type { ChatMessage, DiseaseAnalysisResult, YieldPredictionParams, YieldPr
 import * as GeminiService from './services/geminiService';
 
 // --- ICONS ---
+/**
+ * A collection of stateless SVG icon components.
+ * @param {{className?: string}} props - Props for the icon component.
+ * @param {string} [props.className='w-6 h-6'] - The CSS classes to apply to the SVG element.
+ * @returns {React.ReactElement} The rendered SVG icon.
+ */
 const IconBot = ({ className = "w-6 h-6" }) => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={className}><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zM8.5 12.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm3.5 4c-1.38 0-2.5-1.12-2.5-2.5h5c0 1.38-1.12 2.5-2.5 2.5zm3.5-4c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z" /></svg>;
 const IconLeaf = ({ className = "w-6 h-6" }) => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={className}><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zM17.5 13c-.83 0-1.5-.67-1.5-1.5V11h-2v.5c0 .83-.67 1.5-1.5 1.5S11 12.33 11 11.5V11H9v.5c0 .83-.67 1.5-1.5 1.5S6 12.33 6 11.5V10c0-2.21 1.79-4 4-4h4c2.21 0 4 1.79 4 4v1.5c0 .83-.67 1.5-1.5 1.5z" /></svg>;
 const IconChart = ({ className = "w-6 h-6" }) => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={className}><path d="M5 9.2h3V19H5zM10.6 5h2.8v14h-2.8zm5.6 8H19v6h-2.8z" /></svg>;
@@ -42,6 +48,12 @@ type Theme = 'light' | 'dark';
 interface ThemeContextType { theme: Theme; toggleTheme: () => void; }
 const ThemeContext = createContext<ThemeContextType | null>(null);
 
+/**
+ * Provides theme state (light/dark) to the application.
+ * It persists the theme in localStorage and applies the corresponding class to the HTML root element.
+ * @param {{children: React.ReactNode}} props - Component props.
+ * @returns {React.ReactElement} The theme provider component.
+ */
 const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [theme, setTheme] = useState<Theme>(() => {
         // Initialize theme from localStorage to prevent flicker on load
@@ -88,6 +100,10 @@ const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) =>
     return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
 };
 
+/**
+ * Custom hook to access the theme context.
+ * @returns {ThemeContextType} The theme context value.
+ */
 export const useTheme = () => useContext(ThemeContext)!;
 
 // Language Context
@@ -236,7 +252,7 @@ const translations = {
         'ai.placeholder': 'फसल, मिट्टी, या खेती से संबंधित कुछ भी पूछें...',
         'ai.suggestion1': 'मक्का के लिए सबसे अच्छा उर्वरक?',
         'ai.suggestion2': 'टमाटर की झुलसाहट का इलाज कैसे करें?',
-        'ai.suggestion3': 'सोयाबीन बोने का सबसे अच्छा समय कब है?',
+        'ai.suggestion3': 'सोयाबीन बोने का सबसे अच्छा समय कब ਹੈ?',
         'ai.suggestion4': 'मिट्टी की गुणवत्ता में सुधार करें',
         
         // Disease Detection
@@ -386,7 +402,7 @@ const translations = {
         'nav.market': 'ಮಾರುಕಟ್ಟೆ ಸಲಹೆಗಾರ',
         'nav.watering': 'ಸ್ಮಾರ್ಟ್ ನೀರು',
         'nav.dashboard': 'ಬಳಕೆದಾರ ಡ್ಯಾಶ್‌ಬೋರ್ಡ್',
-        'nav.profile': 'ಪ್ರೊಫೈಲ್',
+        'nav.profile': 'ಪ್ರೊಫೈల్',
         'nav.logout': 'ಲಾಗ್ ಔಟ್',
         'action.fullscreen': 'ಪೂರ್ಣ ಪರದೆ',
         'action.collapse': 'ಸಂಕುಚಿತ'
@@ -421,6 +437,12 @@ const translations = {
     }
 };
 
+/**
+ * Provides internationalization (i18n) state and functions to the application.
+ * It manages the current language, persists it to localStorage, and provides a translation function `t`.
+ * @param {{children: React.ReactNode}} props - Component props.
+ * @returns {React.ReactElement} The language provider component.
+ */
 const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [language, setLanguage] = useState<Language>(() => {
         try {
@@ -453,6 +475,10 @@ const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ children })
     return <LanguageContext.Provider value={value}>{children}</LanguageContext.Provider>;
 };
 
+/**
+ * Custom hook to access the language context.
+ * @returns {LanguageContextType} The language context value.
+ */
 export const useLanguage = () => useContext(LanguageContext)!;
 
 // Clerk will provide authentication state; local AuthContext removed in favor of Clerk
@@ -460,6 +486,13 @@ export const useLanguage = () => useContext(LanguageContext)!;
 // Activity Context
 interface ActivityContextType { activities: RecentActivity[]; addActivity: (activity: Omit<RecentActivity, 'id' | 'timestamp'>) => void; }
 const ActivityContext = createContext<ActivityContextType | null>(null);
+
+/**
+ * Provides a log of recent user activities within the application.
+ * It stores activities in localStorage and provides a function to add new activities.
+ * @param {{children: React.ReactNode}} props - Component props.
+ * @returns {React.ReactElement} The activity provider component.
+ */
 const ActivityProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [activities, setActivities] = useState<RecentActivity[]>(() => {
         const saved = localStorage.getItem('agri_activities');
@@ -482,6 +515,14 @@ export const useActivity = () => useContext(ActivityContext)!;
 // Chat Context
 interface ChatContextType { messages: ChatMessage[]; sendMessage: (messageText: string) => Promise<void>; isLoading: boolean; clearMessages: () => void; }
 const ChatContext = createContext<ChatContextType | null>(null);
+
+/**
+ * Manages the state of the AI chat interface.
+ * This includes the message history, loading status, and functions for sending and clearing messages.
+ * It also handles saving chat history to Supabase.
+ * @param {{children: React.ReactNode}} props - Component props.
+ * @returns {React.ReactElement} The chat provider component.
+ */
 const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const { language } = useLanguage();
     
@@ -604,11 +645,23 @@ const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
 
     return <ChatContext.Provider value={{ messages, sendMessage, isLoading, clearMessages }}>{children}</ChatContext.Provider>;
 };
+/**
+ * Custom hook to access the chat context.
+ * @returns {ChatContextType} The chat context value.
+ */
 export const useChat = () => useContext(ChatContext)!;
 
 // Profile Context
 interface ProfileContextType { profile: UserProfile; updateProfile: (newProfile: UserProfile) => void; }
 const ProfileContext = createContext<ProfileContextType | null>(null);
+
+/**
+ * Manages the user's profile data.
+ * It loads the profile from localStorage and Supabase, and provides a function to update it.
+ * It synchronizes profile data between the local state, localStorage, and the Supabase backend.
+ * @param {{children: React.ReactNode}} props - Component props.
+ * @returns {React.ReactElement} The profile provider component.
+ */
 const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const { user } = useUser();
     const supabaseClientImport = async () => await import('./services/supabaseClient');
@@ -741,20 +794,51 @@ const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ children }) 
     };
     return <ProfileContext.Provider value={{ profile, updateProfile }}>{children}</ProfileContext.Provider>;
 };
+/**
+ * Custom hook to access the user profile context.
+ * @returns {ProfileContextType} The profile context value.
+ */
 export const useProfile = () => useContext(ProfileContext)!;
 
 
 // --- UI COMPONENTS ---
+/**
+ * A reusable card component with a consistent style.
+ * @param {object} props - Component props.
+ * @param {React.ReactNode} props.children - The content to be displayed inside the card.
+ * @param {string} [props.className] - Additional CSS classes to apply to the card.
+ * @param {function(e: React.MouseEvent<HTMLDivElement>): void} [props.onClick] - Optional click handler for the card.
+ * @returns {React.ReactElement} The rendered card component.
+ */
 const Card: React.FC<{ children: React.ReactNode, className?: string, onClick?: (e: React.MouseEvent<HTMLDivElement>) => void }> = ({ children, className, onClick }) => (
     <div onClick={onClick} className={`bg-white/60 dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 rounded-lg p-6 shadow-lg ${className}`}>
         {children}
     </div>
 );
+/**
+ * A reusable button component with consistent styling.
+ * @param {object} props - Component props.
+ * @param {React.ReactNode} props.children - The content of the button.
+ * @param {function(): void} [props.onClick] - The function to call when the button is clicked.
+ * @param {string} [props.className] - Additional CSS classes.
+ * @param {"button" | "submit" | "reset"} [props.type="button"] - The button's type attribute.
+ * @param {boolean} [props.disabled] - Whether the button is disabled.
+ * @returns {React.ReactElement} The rendered button component.
+ */
 const Button: React.FC<{ children: React.ReactNode, onClick?: () => void, className?: string, type?: "button" | "submit" | "reset", disabled?: boolean }> = ({ children, onClick, className, type = "button", disabled }) => (
     <button type={type} onClick={onClick} disabled={disabled} className={`bg-emerald-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-emerald-500 transition-all duration-300 flex items-center justify-center gap-2 ${className} disabled:bg-slate-300 dark:disabled:bg-slate-600 disabled:cursor-not-allowed`}>
         {children}
     </button>
 );
+/**
+ * A header component used at the top of each tool page.
+ * @param {object} props - Component props.
+ * @param {React.ReactNode} props.icon - The icon to display next to the title.
+ * @param {string} props.title - The main title for the tool page.
+ * @param {string} props.subtitle - The subtitle or description for the tool page.
+ * @param {React.ReactNode} [props.children] - Optional additional elements to render on the right side of the header.
+ * @returns {React.ReactElement} The rendered tool header.
+ */
 const ToolHeader: React.FC<{ icon: React.ReactNode, title: string, subtitle: string, children?: React.ReactNode }> = ({ icon, title, subtitle, children }) => (
     <div className="mb-8 flex justify-between items-start">
         <div>
@@ -767,6 +851,11 @@ const ToolHeader: React.FC<{ icon: React.ReactNode, title: string, subtitle: str
         <div>{children}</div>
     </div>
 );
+/**
+ * A button component for toggling between light and dark themes.
+ * @param {{className?: string}} props - Component props.
+ * @returns {React.ReactElement} The rendered theme toggle button.
+ */
 const ThemeToggle: React.FC<{ className?: string }> = ({ className }) => {
     const { theme, toggleTheme } = useTheme();
     return (
@@ -776,6 +865,12 @@ const ThemeToggle: React.FC<{ className?: string }> = ({ className }) => {
     );
 };
 
+/**
+ * A dropdown component for changing the application's language.
+ * It displays the current language and allows selection from a list of supported languages.
+ * @param {{className?: string}} props - Component props.
+ * @returns {React.ReactElement} The rendered language toggle dropdown.
+ */
 const LanguageToggle: React.FC<{ className?: string }> = ({ className }) => {
     const { language, setLanguage, t } = useLanguage();
     const [isOpen, setIsOpen] = useState(false);
@@ -885,6 +980,12 @@ const LanguageToggle: React.FC<{ className?: string }> = ({ className }) => {
     );
 };
 
+/**
+ * A button to toggle the voice input feature.
+ * Note: This is currently a demo and does not implement full speech recognition.
+ * @param {{className?: string}} props - Component props.
+ * @returns {React.ReactElement} The rendered voice toggle button.
+ */
 const VoiceToggle: React.FC<{ className?: string }> = ({ className }) => {
     const [isListening, setIsListening] = useState(false);
     const [isSupported, setIsSupported] = useState(false);
@@ -941,6 +1042,12 @@ const VoiceToggle: React.FC<{ className?: string }> = ({ className }) => {
 // LanguageTranslator removed per request.
 
 // --- AUTH & ROUTING ---
+/**
+ * A component that protects routes, allowing access only to signed-in users.
+ * It uses Clerk's `<SignedIn>` and `<SignedOut>` components to manage access control.
+ * Unauthenticated users are redirected to the sign-in page.
+ * @returns {React.ReactElement} The outlet for nested routes if signed in, or a redirect.
+ */
 const ProtectedRoute: React.FC = () => {
     // Use Clerk's SignedIn/SignedOut components to gate routes
     return (
@@ -958,6 +1065,11 @@ const ProtectedRoute: React.FC = () => {
 
 
 // --- TOOLS PAGE LAYOUT ---
+/**
+ * The main layout for the authenticated part of the application.
+ * It includes the sidebar navigation, mobile navigation, and the main content area where tools are rendered.
+ * @returns {React.ReactElement} The main tools page layout.
+ */
 const ToolsPage: React.FC = () => {
     const location = useLocation();
     const clerk = useClerk();
@@ -1054,6 +1166,13 @@ const ToolsPage: React.FC = () => {
 
 
 // --- AI ASSISTANT (CHAT COMPONENT) ---
+/**
+ * The user interface for the AI chat.
+ * It displays the conversation history, provides an input field for new messages, and shows suggestion chips.
+ * @param {{isFullScreen: boolean}} props - Component props.
+ * @param {boolean} props.isFullScreen - Determines if the chat should render in a full-screen layout.
+ * @returns {React.ReactElement} The rendered chat interface.
+ */
 const ChatInterface: React.FC<{ isFullScreen: boolean }> = ({ isFullScreen }) => {
     const { messages, sendMessage, isLoading, clearMessages } = useChat();
     const [input, setInput] = useState('');
@@ -1161,6 +1280,11 @@ const ChatInterface: React.FC<{ isFullScreen: boolean }> = ({ isFullScreen }) =>
     return <div className="h-full flex flex-col bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg overflow-hidden">{chatBody}{chatInput}</div>;
 };
 
+/**
+ * The main component for the AI Assistant tool page.
+ * It includes a welcome modal, the tool header, and the chat interface.
+ * @returns {React.ReactElement} The rendered AI Assistant page.
+ */
 const AIAssistant: React.FC = () => {
     const [showModal, setShowModal] = useState(() => !sessionStorage.getItem('agri_assistant_modal_seen'));
     const navigate = useNavigate();
@@ -1199,6 +1323,11 @@ const AIAssistant: React.FC = () => {
     );
 };
 
+/**
+ * A full-screen version of the AI Assistant chat interface.
+ * Provides a dedicated, distraction-free view for the chat.
+ * @returns {React.ReactElement} The rendered full-screen chat page.
+ */
 const AIAssistantFullScreen: React.FC = () => {
     const navigate = useNavigate();
     const { t } = useLanguage();
@@ -1221,6 +1350,11 @@ const AIAssistantFullScreen: React.FC = () => {
 }
 
 // --- DISEASE DETECTION ---
+/**
+ * The component for the Crop Disease Detection tool.
+ * It allows users to upload an image or use their camera to get an AI-powered analysis of plant diseases.
+ * @returns {React.ReactElement} The rendered Disease Detection page.
+ */
 const DiseaseDetection: React.FC = () => {
     const [imageFile, setImageFile] = useState<File | null>(null);
     const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -1390,6 +1524,11 @@ const DiseaseDetection: React.FC = () => {
 };
 
 // --- YIELD PREDICTION ---
+/**
+ * The component for the Yield Prediction tool.
+ * It uses user profile data and a selected crop to forecast yield and provides insights.
+ * @returns {React.ReactElement} The rendered Yield Prediction page.
+ */
 const YieldPrediction: React.FC = () => {
     const [crop, setCrop] = useState('corn');
     const [result, setResult] = useState<YieldPredictionResult | null>(null);
@@ -1517,6 +1656,17 @@ const YieldPrediction: React.FC = () => {
     );
 };
 
+/**
+ * A reusable form field component that can render either a standard input or a select dropdown.
+ * @param {object} props - Component props.
+ * @param {string} props.label - The label for the form field.
+ * @param {string} props.name - The name attribute for the input/select element.
+ * @param {any} props.value - The current value of the field.
+ * @param {function} props.onChange - The callback function to handle value changes.
+ * @param {string} props.type - The type of the input field (e.g., 'text', 'number', 'select').
+ * @param {string[]} [props.options] - An array of options for the select dropdown.
+ * @returns {React.ReactElement} The rendered form field.
+ */
 const FormField: React.FC<{label:string, name:string, value:any, onChange:any, type:string, options?:string[]}> = ({label, name, value, onChange, type, options}) => (
     <div>
         <label htmlFor={name} className="block mb-2 text-sm font-medium text-slate-600 dark:text-slate-300">{label}</label>
@@ -1531,6 +1681,11 @@ const FormField: React.FC<{label:string, name:string, value:any, onChange:any, t
 );
 
 // --- SMART WATERING ---
+/**
+ * The component for the Smart Watering System tool.
+ * It simulates real-time soil moisture monitoring and provides AI-driven watering recommendations.
+ * @returns {React.ReactElement} The rendered Smart Watering page.
+ */
 const SmartWatering: React.FC = () => {
     const [moisture, setMoisture] = useState(65);
     const [threshold, setThreshold] = useState(50);
@@ -1658,6 +1813,11 @@ const SmartWatering: React.FC = () => {
 };
 
 // --- MARKET ADVISOR ---
+/**
+ * The component for the Market Advisor tool.
+ * It fetches AI-powered market analysis and price forecasts for a selected crop and location.
+ * @returns {React.ReactElement} The rendered Market Advisor page.
+ */
 const MarketAdvisor: React.FC = () => {
     const [selectedCrop, setSelectedCrop] = useState('corn');
     const [result, setResult] = useState<MarketAnalysisResult | null>(null);
@@ -1780,6 +1940,11 @@ const MarketAdvisor: React.FC = () => {
 };
 
 // --- USER DASHBOARD ---
+/**
+ * The component for the User Dashboard page.
+ * It displays an overview of the user's recent activities and usage statistics.
+ * @returns {React.ReactElement} The rendered User Dashboard page.
+ */
 const UserDashboard: React.FC = () => {
     const { activities } = useActivity();
     const iconMap = {
@@ -1816,6 +1981,12 @@ const UserDashboard: React.FC = () => {
     );
 };
 
+/**
+ * A custom hook to animate a number from 0 to a target value.
+ * @param {number} endValue - The final value of the counter.
+ * @param {number} [duration=1000] - The duration of the animation in milliseconds.
+ * @returns {number} The current value of the animated counter.
+ */
 const useAnimatedCounter = (endValue: number, duration: number = 1000) => {
     const [count, setCount] = useState(0);
     useEffect(() => {
@@ -1832,6 +2003,13 @@ const useAnimatedCounter = (endValue: number, duration: number = 1000) => {
     }, [endValue, duration]);
     return count;
 };
+/**
+ * A card component to display a single statistic with an animated number.
+ * @param {object} props - Component props.
+ * @param {string} props.title - The title of the statistic.
+ * @param {number} props.value - The numerical value to display and animate.
+ * @returns {React.ReactElement} The rendered statistic card.
+ */
 const StatCard: React.FC<{title: string, value: number}> = ({ title, value }) => {
     const animatedValue = useAnimatedCounter(value);
     return (
@@ -1843,6 +2021,11 @@ const StatCard: React.FC<{title: string, value: number}> = ({ title, value }) =>
 };
 
 // --- USER PROFILE ---
+/**
+ * The component for the User Profile page.
+ * It allows the user to view and update their farm and contact information.
+ * @returns {React.ReactElement} The rendered Profile page.
+ */
 const ProfilePage: React.FC = () => {
     const { profile, updateProfile } = useProfile();
     const [formData, setFormData] = useState(profile);
@@ -1901,6 +2084,11 @@ const ProfilePage: React.FC = () => {
 };
 
 // --- MAIN APP COMPONENT ---
+/**
+ * The root component of the application.
+ * It sets up all the context providers and defines the application's routing structure.
+ * @returns {React.ReactElement} The main application component.
+ */
 export default function App() {
     // Protect Material Symbols icon ligatures from being translated by third-party translators
     useEffect(() => {
