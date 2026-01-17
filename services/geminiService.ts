@@ -1,6 +1,7 @@
 
 import { GoogleGenAI, Chat, GenerateContentResponse, Type } from "@google/genai";
 import { YieldPredictionParams, UserProfile, MarketAnalysisResult } from '../types';
+import * as ApiService from './apiService';
 
 // Access the API key from environment variables (works in both local and Vercel)
 const API_KEY = import.meta.env.VITE_GEMINI_API_KEY || (window as any).APP_CONFIG?.API_KEY;
@@ -11,12 +12,19 @@ const hasValidApiKey = API_KEY && API_KEY !== 'YOUR_GEMINI_API_KEY' && API_KEY.s
 // Conditionally initialize the AI client only if the key is valid
 const ai = hasValidApiKey ? new GoogleGenAI({ apiKey: API_KEY }) : null;
 
-if (!hasValidApiKey) {
+// Check if we should use the local backend API instead of Gemini directly
+const USE_LOCAL_BACKEND = true; // Set to true to use predict.py backend
+
+if (!hasValidApiKey && !USE_LOCAL_BACKEND) {
     console.warn("Valid Gemini API key not found in config.js. The app will use mock data. To get a real API key, visit https://aistudio.google.com/app/apikey");
 }
 
+if (USE_LOCAL_BACKEND) {
+    console.log("🌾 Using local backend API at http://localhost:8000");
+}
+
 // --- MOCK DATA for development without API key ---
-const useMockData = !hasValidApiKey;
+const useMockData = !hasValidApiKey && !USE_LOCAL_BACKEND;
 
 const mockChatResponse = "As an AI assistant, I can help with crop management, disease diagnosis, and yield optimization. How can I assist you today?";
 const mockDiseaseAnalysis = {
@@ -107,6 +115,21 @@ IMPORTANT: The user has selected ${selectedLanguage} as their preferred language
 };
 
 export async function* streamChatResponse(message: string, profile?: UserProfile, language: string = 'en') {
+    // Use local backend for chat
+    if (USE_LOCAL_BACKEND) {
+        try {
+            const userId = profile?.id || 'anonymous';
+            for await (const chunk of ApiService.streamChatResponse(message, userId, language)) {
+                yield chunk;
+            }
+            return;
+        } catch (error) {
+            console.error('Backend chat error:', error);
+            yield `Sorry, I couldn't connect to the backend server. Please make sure it's running at http://localhost:8000. Error: ${error instanceof Error ? error.message : 'Unknown error'}`;
+            return;
+        }
+    }
+    
     if (useMockData) {
         for (const word of mockChatResponse.split(" ")) {
             await new Promise(res => setTimeout(res, 50));
@@ -129,8 +152,33 @@ export const resetChat = () => {
 };
 
 // --- DISEASE DETECTION SERVICE ---
+// This now uses the local FastAPI backend with real ML model
 export const analyzeCropDisease = async (base64Image: string, mimeType: string): Promise<any> => {
-     if (useMockData || !ai) {
+    // Always use local backend for disease detection (real ML model)
+    if (USE_LOCAL_BACKEND) {
+        try {
+            const result = await ApiService.analyzeCropDiseaseBase64(base64Image, mimeType);
+            // Transform backend response to match expected frontend format
+            return {
+                disease: result.predicted_class,
+                confidence: result.confidence,
+                description: `Detected ${result.predicted_class} with ${result.confidence}% confidence. Severity: ${result.severity}`,
+                treatment: [result.treatment],
+                prevention: result.recommendations,
+            };
+        } catch (error) {
+            console.error('Backend API error:', error);
+            // Fall back to mock data if backend fails
+            await new Promise(res => setTimeout(res, 500));
+            return {
+                ...mockDiseaseAnalysis,
+                disease: "API Error - Please ensure backend is running",
+                description: `Error: ${error instanceof Error ? error.message : 'Unknown error'}. Make sure the backend server is running at http://localhost:8000`,
+            };
+        }
+    }
+    
+    if (useMockData || !ai) {
         await new Promise(res => setTimeout(res, 2000));
         return mockDiseaseAnalysis;
     }

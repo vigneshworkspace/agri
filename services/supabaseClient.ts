@@ -1,39 +1,44 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
 const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
 
-if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
-  console.warn('Supabase environment variables VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY are not set. Supabase client will still be created but requests will fail.');
+// Check if Supabase is properly configured
+const isSupabaseConfigured = SUPABASE_URL && SUPABASE_ANON_KEY && 
+    !SUPABASE_URL.includes('your-project') && 
+    SUPABASE_URL.length > 10;
+
+if (!isSupabaseConfigured) {
+  console.warn('⚠️ Supabase not configured - chat history will not be saved. This is fine for local development.');
 }
 
-export const supabase = createClient(SUPABASE_URL || '', SUPABASE_ANON_KEY || '', {
-  auth: {
-    autoRefreshToken: false,
-    persistSession: false,
-    detectSessionInUrl: false
-  }
-});
+// Create a mock client that does nothing when Supabase isn't configured
+const createMockClient = (): SupabaseClient => {
+    const mockResponse = { data: null, error: null };
+    const mockQuery = () => ({
+        select: () => mockQuery(),
+        insert: () => Promise.resolve(mockResponse),
+        update: () => Promise.resolve(mockResponse),
+        delete: () => Promise.resolve(mockResponse),
+        eq: () => mockQuery(),
+        single: () => Promise.resolve(mockResponse),
+        then: (resolve: any) => resolve(mockResponse),
+    });
+    
+    return {
+        from: () => mockQuery(),
+        auth: {
+            getUser: () => Promise.resolve({ data: { user: null }, error: null }),
+            signIn: () => Promise.resolve({ data: null, error: null }),
+            signOut: () => Promise.resolve({ error: null }),
+        },
+    } as unknown as SupabaseClient;
+};
 
-// Function to create authenticated client with Clerk token
-export async function createSupabaseClient(clerkToken?: string) {
-  if (!clerkToken) {
-    console.warn('No Clerk token provided, using anonymous client');
-    return supabase;
-  }
+export const supabase = isSupabaseConfigured 
+    ? createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+    : createMockClient();
 
-  return createClient(SUPABASE_URL || '', SUPABASE_ANON_KEY || '', {
-    global: {
-      headers: {
-        Authorization: `Bearer ${clerkToken}`,
-      },
-    },
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false,
-      detectSessionInUrl: false
-    }
-  });
-}
+export const isSupabaseEnabled = isSupabaseConfigured;
 
 export default supabase;
